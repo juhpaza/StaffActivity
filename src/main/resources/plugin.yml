@@ -36,6 +36,9 @@ permissions:
   staffactivity.command.sessions:
     description: Allows viewing recent staff sessions.
     default: false
+  staffactivity.command.gui:
+    description: Allows opening the StaffActivity management GUI.
+    default: false
   staffactivity.command.reload:
     description: Allows reloading StaffActivity configuration.
     default: false
@@ -52,5 +55,6 @@ permissions:
       staffactivity.command.week: true
       staffactivity.command.top: true
       staffactivity.command.sessions: true
+      staffactivity.command.gui: true
       staffactivity.command.reload: true
       staffactivity.command.debug: true

@@ -4,6 +4,8 @@ import fi.juhpaza.staffactivity.command.StaffActivityCommand;
 import fi.juhpaza.staffactivity.config.ConfigService;
 import fi.juhpaza.staffactivity.database.DatabaseService;
 import fi.juhpaza.staffactivity.discord.DiscordReportService;
+import fi.juhpaza.staffactivity.gui.StaffActivityGui;
+import fi.juhpaza.staffactivity.gui.StaffActivityGuiListener;
 import fi.juhpaza.staffactivity.listener.StaffActivityListener;
 import fi.juhpaza.staffactivity.message.MessageService;
 import fi.juhpaza.staffactivity.model.SessionCloseReason;
@@ -22,6 +24,7 @@ public final class StaffActivity extends JavaPlugin {
     private ConfigService configService;
     private DatabaseService databaseService;
     private DiscordReportService discordReportService;
+    private StaffActivityGui staffActivityGui;
     private MessageService messageService;
     private SessionService sessionService;
     private BukkitTask autosaveTask;
@@ -34,11 +37,13 @@ public final class StaffActivity extends JavaPlugin {
         this.configService = new ConfigService(this);
         this.databaseService = new DatabaseService(this);
         this.discordReportService = new DiscordReportService(this);
+        this.staffActivityGui = new StaffActivityGui(this);
         this.messageService = new MessageService(this);
         this.sessionService = new SessionService(configService.afkTimeout());
 
         registerCommands();
         getServer().getPluginManager().registerEvents(new StaffActivityListener(this), this);
+        getServer().getPluginManager().registerEvents(new StaffActivityGuiListener(this), this);
         databaseService.initialize(configService.timezone()).whenComplete((ignored, throwable) -> {
             if (throwable != null) {
                 getLogger().severe("Database initialization failed: " + throwable.getMessage());
@@ -81,6 +86,10 @@ public final class StaffActivity extends JavaPlugin {
 
     public DiscordReportService discordReportService() {
         return discordReportService;
+    }
+
+    public StaffActivityGui staffActivityGui() {
+        return staffActivityGui;
     }
 
     public MessageService messageService() {

@@ -42,6 +42,7 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
             case "top" -> handleTop(sender, args);
             case "sessions" -> handleSessions(sender, args);
             case "discord" -> handleDiscord(sender, args);
+            case "gui" -> handleGui(sender);
             case "debug" -> handleDebug(sender);
             case "reload" -> handleReload(sender);
             default -> {
@@ -79,6 +80,9 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
         }
         if (has(sender, "staffactivity.command.debug")) {
             options.add("discord");
+        }
+        if (has(sender, "staffactivity.command.gui")) {
+            options.add("gui");
         }
 
         String prefix = args[0].toLowerCase();
@@ -273,6 +277,19 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
         plugin.messageService().reload();
         plugin.messageService().send(sender, "commands.reload");
         plugin.restartDiscordReports();
+        return true;
+    }
+
+    private boolean handleGui(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            plugin.messageService().send(sender, "commands.player-only");
+            return true;
+        }
+        if (!has(sender, "staffactivity.command.gui")) {
+            plugin.messageService().send(sender, "commands.no-permission");
+            return true;
+        }
+        plugin.staffActivityGui().open(player);
         return true;
     }
 

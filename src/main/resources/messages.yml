@@ -4,7 +4,7 @@ commands:
   no-permission: "<red>Sinulla ei ole oikeutta tähän komentoon.</red>"
   player-only: "<red>Tämä komento vaatii pelaajan. Käytä konsolista pelaajan nimeä.</red>"
   player-not-found: "<red>StaffActivity-tietoja ei löytynyt pelaajalle <white><player></white>.</red>"
-  usage: "<gray>Käyttö: <white>/staffactivity</white>, <white>/staffactivity view <pelaaja></white>, <white>/staffactivity today [pelaaja]</white>, <white>/staffactivity sessions <pelaaja></white>, <white>/staffactivity discord test</white>, <white>/staffactivity debug</white></gray>"
+  usage: "<gray>Käyttö: <white>/staffactivity</white>, <white>/staffactivity gui</white>, <white>/staffactivity view <pelaaja></white>, <white>/staffactivity today [pelaaja]</white>, <white>/staffactivity sessions <pelaaja></white>, <white>/staffactivity discord test</white>, <white>/staffactivity debug</white></gray>"
   reload: "<green>Asetukset ladattiin uudelleen.</green>"
   query-failed: "<red>Tietojen haku epäonnistui. Katso konsoli lisätietoja varten.</red>"
   summary:

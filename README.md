@@ -32,6 +32,7 @@ StaffActivity is designed around a few practical rules:
 - Autosave for active sessions.
 - Query commands for self, player, day, week, top lists and recent sessions.
 - Discord webhook support for daily reports, weekly reports, optional join/quit messages and safe test messages.
+- In-game management GUI for safe status checks and common admin actions.
 - Safe debug command that avoids leaking secrets.
 
 ## Requirements
@@ -76,6 +77,7 @@ SQLite JDBC 3.49.1.0
 | `/staffactivity week [player]` | Show this week's stats | `staffactivity.command.week` |
 | `/staffactivity top [online\|active\|actions]` | Show top staff activity lists | `staffactivity.command.top` |
 | `/staffactivity sessions <player>` | Show recent staff sessions | `staffactivity.command.sessions` |
+| `/staffactivity gui` | Open the in-game management GUI | `staffactivity.command.gui` |
 | `/staffactivity discord test` | Send a Discord webhook test message | `staffactivity.command.debug` |
 | `/staffactivity reload` | Reload config and messages | `staffactivity.command.reload` |
 | `/staffactivity debug` | Show safe technical status | `staffactivity.command.debug` |
@@ -97,6 +99,7 @@ Alias:
 | `staffactivity.command.week` | Allows weekly stats command |
 | `staffactivity.command.top` | Allows top list command |
 | `staffactivity.command.sessions` | Allows recent sessions command |
+| `staffactivity.command.gui` | Allows opening the in-game management GUI |
 | `staffactivity.command.reload` | Allows config reload |
 | `staffactivity.command.debug` | Allows safe debug and Discord test command |
 | `staffactivity.admin` | Grants all StaffActivity command permissions |

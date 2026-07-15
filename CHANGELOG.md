@@ -17,5 +17,6 @@ Initial development version.
 - Query commands for summaries, daily stats, weekly stats, top lists and recent sessions.
 - Active session autosave and crash recovery table.
 - Discord webhook client, scheduled daily/weekly reports and test command.
+- In-game management GUI with status cards and safe admin actions.
 - Finnish default messages.
 - Unit tests for core session, database and Discord formatting behavior.
