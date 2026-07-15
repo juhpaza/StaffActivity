@@ -57,7 +57,7 @@ SQLite JDBC 3.49.1.0
 2. Copy the jar to the server:
 
    ```text
-   plugins/StaffActivity-0.1.0-SNAPSHOT.jar
+   plugins/StaffActivity-0.2.5-SNAPSHOT.jar
    ```
 
 3. Start the server once so `config.yml` and `messages.yml` are generated.
@@ -90,7 +90,7 @@ Alias:
 /jpzsa
 ```
 
-The in-game staff summary opened by `/staffactivity view <player>` includes clickable buttons that run the existing `today`, `week` and `sessions` command paths for the selected player. The teleport counter opens recent teleport history captured after version `0.2.0-SNAPSHOT` is installed.
+The in-game staff summary opened by `/staffactivity view <player>` includes clickable buttons that run the existing `today`, `week` and `sessions` command paths for the selected player. The teleport counter opens recent teleport history captured by the installed `0.2.5-SNAPSHOT` build or newer.
 
 The in-game Dashboard opened by `/staffactivity gui` is the main StaffActivity menu. It shows plugin version, database status, pending writes, Discord status, online staff, tracking permission, timezone and active session count, and links to existing online staff, top, today, week, reload and Discord test flows.
 
@@ -236,7 +236,7 @@ Linux/macOS:
 The built plugin jar is written to:
 
 ```text
-build/libs/StaffActivity-0.1.0-SNAPSHOT.jar
+build/libs/StaffActivity-0.2.5-SNAPSHOT.jar
 ```
 
 ## Testing
@@ -255,7 +255,7 @@ Run build and tests:
 
 ## Current Status
 
-This project is still an early implementation. The core architecture, SQLite persistence, session tracking, commands, autosave and Discord webhook foundation are in place.
+This project is still a snapshot-stage implementation. The core architecture, SQLite persistence, session tracking, commands, autosave, Discord webhook foundation, in-game dashboard, staff summary GUI and teleport history tracking are in place.
 
 Known limitations:
 

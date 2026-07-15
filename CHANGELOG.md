@@ -2,6 +2,23 @@
 
 All notable changes to StaffActivity will be documented in this file.
 
+## 0.2.5-SNAPSHOT
+
+Current snapshot build.
+
+### Added
+
+- In-game staff summary GUI opened through `/staffactivity view <player>`.
+- Click actions in the staff summary for today's stats, weekly stats, recent sessions and recent teleports.
+- Dashboard main menu for `/staffactivity gui` with status cards and navigation to existing stats flows.
+- Teleport event history with cause, coordinates and detected vanish state.
+
+### Changed
+
+- Improved dashboard diagnostics, teleport counters and startup diagnostics formatting.
+- Clarified command counter wording, recent activity period output and GUI placeholder messages.
+- Fixed plugin resource version expansion so the built jar reports the Gradle project version.
+
 ## 0.1.0-SNAPSHOT
 
 Initial development version.
