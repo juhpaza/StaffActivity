@@ -1,6 +1,7 @@
 package fi.juhpaza.staffactivity.config;
 
 import java.time.DateTimeException;
+import java.time.Duration;
 import java.time.ZoneId;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -12,6 +13,7 @@ public final class ConfigService {
     private final JavaPlugin plugin;
     private ZoneId timezone;
     private boolean discordEnabled;
+    private Duration afkTimeout;
 
     public ConfigService(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -22,6 +24,7 @@ public final class ConfigService {
         FileConfiguration config = plugin.getConfig();
         this.timezone = parseTimezone(config.getString("plugin.timezone", "Europe/Helsinki"));
         this.discordEnabled = config.getBoolean("discord.enabled", false);
+        this.afkTimeout = Duration.ofSeconds(Math.max(30, config.getLong("activity.afk-timeout-seconds", 300)));
     }
 
     public String timezoneId() {
@@ -30,6 +33,10 @@ public final class ConfigService {
 
     public boolean discordEnabled() {
         return discordEnabled;
+    }
+
+    public Duration afkTimeout() {
+        return afkTimeout;
     }
 
     private ZoneId parseTimezone(String value) {
