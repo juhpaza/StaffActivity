@@ -4,6 +4,8 @@ StaffActivity is a Paper plugin for tracking staff presence and operational acti
 
 The plugin is built for server owners who want a clear, low-noise view of staff online time, active time, AFK time and basic moderation activity without giving the plugin broad audit-log responsibilities. It only tracks players who have an explicit tracking permission.
 
+Current build: `0.2.5-SNAPSHOT`.
+
 ## Project Description
 
 **Short GitHub description:**
@@ -254,6 +256,8 @@ Run build and tests:
 ```
 
 ## Current Status
+
+Current build: `0.2.5-SNAPSHOT`.
 
 This project is still a snapshot-stage implementation. The core architecture, SQLite persistence, session tracking, commands, autosave, Discord webhook foundation, in-game dashboard, staff summary GUI and teleport history tracking are in place.
 

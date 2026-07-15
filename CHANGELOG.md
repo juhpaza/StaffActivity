@@ -21,7 +21,7 @@ Current snapshot build.
 
 ## 0.1.0-SNAPSHOT
 
-Initial development version.
+Initial development version. This is kept for project history; the current documented build is `0.2.5-SNAPSHOT`.
 
 ### Added
 
@@ -34,11 +34,5 @@ Initial development version.
 - Query commands for summaries, daily stats, weekly stats, top lists and recent sessions.
 - Active session autosave and crash recovery table.
 - Discord webhook client, scheduled daily/weekly reports and test command.
-- In-game management GUI with status cards and safe admin actions.
-- Graphical staff summary view through `/staffactivity view <player>` for in-game users.
-- Click actions in the graphical staff summary for today's stats, weekly stats and recent sessions.
-- Dashboard main menu for `/staffactivity gui` with status cards and navigation to existing stats flows.
-- Shorter styled GUI titles, current gamemode labels and clearer placeholder messaging for unavailable teleport history.
-- Teleport event history with cause, coordinates and detected vanish state.
 - Finnish default messages.
 - Unit tests for core session, database and Discord formatting behavior.
