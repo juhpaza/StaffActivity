@@ -12,7 +12,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import fi.juhpaza.staffactivity.model.SessionSnapshot;
+import fi.juhpaza.staffactivity.model.DailyStats;
+import fi.juhpaza.staffactivity.model.RecentSession;
+import fi.juhpaza.staffactivity.model.StaffSummary;
 import fi.juhpaza.staffactivity.repository.StaffSessionRepository;
+import fi.juhpaza.staffactivity.repository.StaffStatsRepository;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -24,6 +28,7 @@ public final class DatabaseService {
     private final JavaPlugin plugin;
     private final DatabaseMigrator migrator;
     private final StaffSessionRepository sessionRepository;
+    private final StaffStatsRepository statsRepository;
     private final ExecutorService executor;
     private final AtomicInteger pendingOperations = new AtomicInteger();
 
@@ -31,13 +36,14 @@ public final class DatabaseService {
     private Connection connection;
 
     public DatabaseService(JavaPlugin plugin) {
-        this(plugin, new DatabaseMigrator(), new StaffSessionRepository());
+        this(plugin, new DatabaseMigrator(), new StaffSessionRepository(), new StaffStatsRepository());
     }
 
-    DatabaseService(JavaPlugin plugin, DatabaseMigrator migrator, StaffSessionRepository sessionRepository) {
+    DatabaseService(JavaPlugin plugin, DatabaseMigrator migrator, StaffSessionRepository sessionRepository, StaffStatsRepository statsRepository) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.migrator = Objects.requireNonNull(migrator, "migrator");
         this.sessionRepository = Objects.requireNonNull(sessionRepository, "sessionRepository");
+        this.statsRepository = Objects.requireNonNull(statsRepository, "statsRepository");
         this.executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "StaffActivity-Database");
             thread.setDaemon(true);
@@ -79,6 +85,34 @@ public final class DatabaseService {
         });
     }
 
+    public CompletableFuture<java.util.Optional<StaffSummary>> findSummaryByUuid(java.util.UUID uuid) {
+        return supplyAsync(() -> {
+            ensureReady();
+            return statsRepository.findSummaryByUuid(connection, uuid);
+        });
+    }
+
+    public CompletableFuture<java.util.Optional<StaffSummary>> findSummaryByName(String latestName) {
+        return supplyAsync(() -> {
+            ensureReady();
+            return statsRepository.findSummaryByName(connection, latestName);
+        });
+    }
+
+    public CompletableFuture<java.util.Optional<DailyStats>> findDailyStats(String uuid, String statDate) {
+        return supplyAsync(() -> {
+            ensureReady();
+            return statsRepository.findDailyStats(connection, uuid, statDate);
+        });
+    }
+
+    public CompletableFuture<java.util.List<RecentSession>> findRecentSessions(String uuid, int limit) {
+        return supplyAsync(() -> {
+            ensureReady();
+            return statsRepository.findRecentSessions(connection, uuid, limit);
+        });
+    }
+
     public void close() {
         runAsync(() -> {
             if (connection != null) {
@@ -113,8 +147,32 @@ public final class DatabaseService {
         }, executor);
     }
 
+    private <T> CompletableFuture<T> supplyAsync(CheckedSupplier<T> supplier) {
+        pendingOperations.incrementAndGet();
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return supplier.get();
+            } catch (Exception ex) {
+                throw new IllegalStateException(ex);
+            } finally {
+                pendingOperations.decrementAndGet();
+            }
+        }, executor);
+    }
+
+    private void ensureReady() {
+        if (status != DatabaseStatus.READY || connection == null) {
+            throw new IllegalStateException("Database is not ready");
+        }
+    }
+
     @FunctionalInterface
     private interface CheckedRunnable {
         void run() throws Exception;
+    }
+
+    @FunctionalInterface
+    private interface CheckedSupplier<T> {
+        T get() throws Exception;
     }
 }

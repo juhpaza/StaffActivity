@@ -2,8 +2,25 @@ prefix: "<gradient:#ff8a00:#ffb347><bold>StaffActivity</bold></gradient>"
 
 commands:
   no-permission: "<red>Sinulla ei ole oikeutta tähän komentoon.</red>"
-  usage: "<gray>Käyttö: <white>/staffactivity debug</white> tai <white>/staffactivity reload</white></gray>"
+  player-only: "<red>Tämä komento vaatii pelaajan. Käytä konsolista pelaajan nimeä.</red>"
+  player-not-found: "<red>StaffActivity-tietoja ei löytynyt pelaajalle <white><player></white>.</red>"
+  usage: "<gray>Käyttö: <white>/staffactivity</white>, <white>/staffactivity view <pelaaja></white>, <white>/staffactivity today [pelaaja]</white>, <white>/staffactivity sessions <pelaaja></white>, <white>/staffactivity debug</white></gray>"
   reload: "<green>Asetukset ladattiin uudelleen.</green>"
+  query-failed: "<red>Tietojen haku epäonnistui. Katso konsoli lisätietoja varten.</red>"
+  summary:
+    header: "<gold>Yhteenveto:</gold> <white><player></white>"
+    totals: "<gray>Sessiot:</gray> <white><sessions></white> <dark_gray>|</dark_gray> <gray>Online:</gray> <white><online></white> <dark_gray>|</dark_gray> <gray>Aktiivinen:</gray> <white><active></white> <dark_gray>|</dark_gray> <gray>AFK:</gray> <white><afk></white>"
+    counters: "<gray>Komennot:</gray> <white><commands></white> <dark_gray>|</dark_gray> <gray>Teleportit:</gray> <white><teleports></white> <dark_gray>|</dark_gray> <gray>Gamemode:</gray> <white><gamemodes></white> <dark_gray>|</dark_gray> <gray>Toimet:</gray> <white><actions></white>"
+    seen: "<gray>Ensimmäinen havainto:</gray> <white><first_seen></white> <dark_gray>|</dark_gray> <gray>Viimeksi nähty:</gray> <white><last_seen></white>"
+  today:
+    header: "<gold>Tänään:</gold> <white><player></white> <dark_gray>(<date>)</dark_gray>"
+    empty: "<gray>Tälle päivälle ei ole tallennettuja StaffActivity-tietoja.</gray>"
+    totals: "<gray>Sessiot:</gray> <white><sessions></white> <dark_gray>|</dark_gray> <gray>Online:</gray> <white><online></white> <dark_gray>|</dark_gray> <gray>Aktiivinen:</gray> <white><active></white> <dark_gray>|</dark_gray> <gray>AFK:</gray> <white><afk></white>"
+    counters: "<gray>Komennot:</gray> <white><commands></white> <dark_gray>|</dark_gray> <gray>Teleportit:</gray> <white><teleports></white> <dark_gray>|</dark_gray> <gray>Gamemode:</gray> <white><gamemodes></white> <dark_gray>|</dark_gray> <gray>Toimet:</gray> <white><actions></white>"
+  sessions:
+    header: "<gold>Viimeisimmät sessiot:</gold> <white><player></white>"
+    empty: "<gray>Tallennettuja sessioita ei löytynyt.</gray>"
+    row: "<gray><started></gray> <dark_gray>-></dark_gray> <gray><ended></gray> <dark_gray>|</dark_gray> <white><online></white> <dark_gray>|</dark_gray> <gray><reason></gray>"
   debug:
     header: "<gold>Tekninen tila</gold>"
     version: "<gray>Versio:</gray> <white><version></white>"

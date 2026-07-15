@@ -46,6 +46,7 @@ permissions:
     description: Grants StaffActivity administrative permissions.
     default: op
     children:
+      staffactivity.command.self: true
       staffactivity.command.view: true
       staffactivity.command.today: true
       staffactivity.command.week: true

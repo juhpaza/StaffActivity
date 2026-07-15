@@ -47,6 +47,8 @@ final class StaffSessionRepositoryTest {
             assertEquals(1, intQuery(connection, "SELECT total_sessions FROM staff_members WHERE uuid = '" + uuid + "'"));
             assertEquals(600, intQuery(connection, "SELECT online_seconds FROM staff_sessions WHERE uuid = '" + uuid + "'"));
             assertEquals(2, intQuery(connection, "SELECT command_count FROM staff_daily_stats WHERE uuid = '" + uuid + "'"));
+            assertEquals("Admin", new StaffStatsRepository().findSummaryByUuid(connection, uuid).orElseThrow().latestName());
+            assertEquals(1, new StaffStatsRepository().findRecentSessions(connection, uuid.toString(), 10).size());
         }
     }
 
