@@ -65,8 +65,8 @@ final class StaffActivitySessionsGui {
     }
 
     private org.bukkit.inventory.ItemStack sessionItem(SessionSnapshot snapshot) {
-        return StaffActivityGuiItems.item(
-                Material.PLAYER_HEAD,
+        return StaffActivityGuiItems.playerHead(
+                snapshot.uuid(),
                 snapshot.latestName(),
                 NamedTextColor.WHITE,
                 List.of(

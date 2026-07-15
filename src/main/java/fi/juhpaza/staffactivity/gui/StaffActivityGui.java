@@ -4,6 +4,7 @@ import fi.juhpaza.staffactivity.StaffActivity;
 import fi.juhpaza.staffactivity.model.StaffSummary;
 import fi.juhpaza.staffactivity.util.DurationFormatter;
 import java.util.List;
+import java.util.UUID;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -59,8 +60,8 @@ public final class StaffActivityGui {
 
     private void fillSummary(Inventory inventory, StaffSummary summary) {
         long activityPercent = activityPercent(summary.totalOnlineSeconds(), summary.totalActiveSeconds());
-        inventory.setItem(4, StaffActivityGuiItems.item(
-                Material.PLAYER_HEAD,
+        inventory.setItem(4, StaffActivityGuiItems.playerHead(
+                UUID.fromString(summary.uuid()),
                 summary.latestName(),
                 NamedTextColor.GOLD,
                 List.of(
