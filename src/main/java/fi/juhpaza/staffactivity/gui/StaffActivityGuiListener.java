@@ -1,6 +1,10 @@
 package fi.juhpaza.staffactivity.gui;
 
 import fi.juhpaza.staffactivity.StaffActivity;
+import java.util.Locale;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -87,6 +91,8 @@ public final class StaffActivityGuiListener implements Listener {
 
     private void handleSummaryClick(Player player, int slot, String targetName) {
         switch (slot) {
+            case 15 -> showTeleportDetailsUnavailable(player, targetName);
+            case 16 -> showCurrentGamemode(player, targetName);
             case 29 -> runSummaryCommand(player, "today", targetName);
             case 30 -> runSummaryCommand(player, "sessions", targetName);
             case 32 -> runSummaryCommand(player, "week", targetName);
@@ -125,6 +131,25 @@ public final class StaffActivityGuiListener implements Listener {
 
     private void comingSoon(Player player) {
         player.sendMessage("Tulossa myöhemmin");
+    }
+
+    private void showTeleportDetailsUnavailable(Player player, String targetName) {
+        player.closeInventory();
+        player.sendMessage(Component.text("StaffActivity", NamedTextColor.GOLD)
+                .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
+                .append(Component.text("Teleportit: " + targetName, NamedTextColor.LIGHT_PURPLE)));
+        player.sendMessage(Component.text("Nykyinen versio tallentaa teleporttien kokonaismäärän.", NamedTextColor.GRAY));
+        player.sendMessage(Component.text("Mistä-mihin, koordinaatit ja vanish-tila vaativat teleporttihistorian tallennuksen.", NamedTextColor.GRAY));
+    }
+
+    private void showCurrentGamemode(Player player, String targetName) {
+        player.closeInventory();
+        Player target = Bukkit.getPlayerExact(targetName);
+        String gamemode = target == null ? "ei online" : target.getGameMode().name().toLowerCase(Locale.ROOT);
+        player.sendMessage(Component.text("StaffActivity", NamedTextColor.GOLD)
+                .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
+                .append(Component.text("Gamemode: " + targetName, NamedTextColor.YELLOW)));
+        player.sendMessage(Component.text("Nykyinen: " + gamemode, NamedTextColor.GRAY));
     }
 
     private void runSummaryCommand(Player player, String subCommand, String targetName) {

@@ -5,7 +5,8 @@ import fi.juhpaza.staffactivity.model.SessionSnapshot;
 import fi.juhpaza.staffactivity.util.DurationFormatter;
 import java.time.Instant;
 import java.util.List;
-import net.kyori.adventure.text.Component;
+import java.util.Locale;
+import java.util.UUID;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -28,7 +29,7 @@ final class StaffActivitySessionsGui {
         Inventory inventory = Bukkit.createInventory(
                 new StaffActivityGuiHolder(StaffActivityGuiView.ONLINE_STAFF),
                 SIZE,
-                Component.text("StaffActivity: Online Staff", NamedTextColor.GREEN)
+                StaffActivityGuiItems.title("Online", NamedTextColor.GREEN)
         );
         fill(inventory);
         player.openInventory(inventory);
@@ -73,8 +74,17 @@ final class StaffActivitySessionsGui {
                         "Online: " + DurationFormatter.seconds(snapshot.onlineTime().toSeconds()),
                         "Active: " + DurationFormatter.seconds(snapshot.activeTime().toSeconds()),
                         "AFK: " + DurationFormatter.seconds(snapshot.afkTime().toSeconds()),
-                        "Komennot: " + snapshot.commandCount()
+                        "Komennot: " + snapshot.commandCount(),
+                        "Gamemode: " + currentGamemode(snapshot.uuid())
                 )
         );
+    }
+
+    private String currentGamemode(UUID uuid) {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) {
+            return "ei online";
+        }
+        return player.getGameMode().name().toLowerCase(Locale.ROOT);
     }
 }

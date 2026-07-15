@@ -21,5 +21,6 @@ Initial development version.
 - Graphical staff summary view through `/staffactivity view <player>` for in-game users.
 - Click actions in the graphical staff summary for today's stats, weekly stats and recent sessions.
 - Dashboard main menu for `/staffactivity gui` with status cards and navigation to existing stats flows.
+- Shorter styled GUI titles, current gamemode labels and clearer placeholder messaging for unavailable teleport history.
 - Finnish default messages.
 - Unit tests for core session, database and Discord formatting behavior.

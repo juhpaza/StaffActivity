@@ -3,7 +3,6 @@ package fi.juhpaza.staffactivity.gui;
 import fi.juhpaza.staffactivity.StaffActivity;
 import fi.juhpaza.staffactivity.database.DatabaseStatus;
 import java.util.List;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -26,7 +25,7 @@ final class StaffActivityDashboardGui {
         Inventory inventory = Bukkit.createInventory(
                 new StaffActivityGuiHolder(StaffActivityGuiView.DASHBOARD),
                 SIZE,
-                Component.text("StaffActivity Dashboard", NamedTextColor.GOLD)
+                StaffActivityGuiItems.title("Dashboard", NamedTextColor.GOLD)
         );
         fill(inventory);
         player.openInventory(inventory);

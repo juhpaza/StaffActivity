@@ -1,7 +1,6 @@
 package fi.juhpaza.staffactivity.gui;
 
 import java.util.List;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -18,7 +17,7 @@ final class StaffActivityStatsMenuGui {
         Inventory inventory = Bukkit.createInventory(
                 new StaffActivityGuiHolder(StaffActivityGuiView.TOP_STATISTICS),
                 SIZE,
-                Component.text("StaffActivity: Top Statistics", NamedTextColor.GOLD)
+                StaffActivityGuiItems.title("Top", NamedTextColor.GOLD)
         );
         fillTop(inventory);
         player.openInventory(inventory);
@@ -28,7 +27,7 @@ final class StaffActivityStatsMenuGui {
         Inventory inventory = Bukkit.createInventory(
                 new StaffActivityGuiHolder(StaffActivityGuiView.TODAY_STATISTICS),
                 SIZE,
-                Component.text("StaffActivity: Today's Statistics", NamedTextColor.YELLOW)
+                StaffActivityGuiItems.title("Today", NamedTextColor.YELLOW)
         );
         fillPeriod(inventory, "Today's Statistics", "Tämän päivän tilastot", Material.MAP, NamedTextColor.YELLOW, "today");
         player.openInventory(inventory);
@@ -38,7 +37,7 @@ final class StaffActivityStatsMenuGui {
         Inventory inventory = Bukkit.createInventory(
                 new StaffActivityGuiHolder(StaffActivityGuiView.WEEKLY_STATISTICS),
                 SIZE,
-                Component.text("StaffActivity: Weekly Statistics", NamedTextColor.AQUA)
+                StaffActivityGuiItems.title("Week", NamedTextColor.AQUA)
         );
         fillPeriod(inventory, "Weekly Statistics", "Tämän viikon tilastot", Material.PAPER, NamedTextColor.AQUA, "week");
         player.openInventory(inventory);

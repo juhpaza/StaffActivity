@@ -9,6 +9,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -29,6 +30,7 @@ final class StaffActivityGuiItems {
             lines.add(Component.text(line, NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
         }
         meta.lore(lines);
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         item.setItemMeta(meta);
         return item;
     }
@@ -41,7 +43,7 @@ final class StaffActivityGuiItems {
         ItemStack item = item(Material.PLAYER_HEAD, name, color, lore);
         ItemMeta meta = item.getItemMeta();
         if (meta instanceof SkullMeta skullMeta) {
-            skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
+            skullMeta.setPlayerProfile(Bukkit.createProfile(uuid, name));
             item.setItemMeta(skullMeta);
         }
         return item;
@@ -49,6 +51,13 @@ final class StaffActivityGuiItems {
 
     static ItemStack filler(Material material) {
         return item(material, " ", NamedTextColor.DARK_GRAY, List.of());
+    }
+
+    static Component title(String section, NamedTextColor sectionColor) {
+        return Component.text("SA", NamedTextColor.GOLD)
+                .decoration(TextDecoration.BOLD, true)
+                .append(Component.text(" | ", NamedTextColor.DARK_GRAY).decoration(TextDecoration.BOLD, false))
+                .append(Component.text(section, sectionColor).decoration(TextDecoration.BOLD, false));
     }
 
     static void frame(Inventory inventory, Material border, Material accent) {

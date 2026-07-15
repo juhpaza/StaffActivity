@@ -4,8 +4,8 @@ import fi.juhpaza.staffactivity.StaffActivity;
 import fi.juhpaza.staffactivity.model.StaffSummary;
 import fi.juhpaza.staffactivity.util.DurationFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -52,16 +52,17 @@ public final class StaffActivityGui {
         Inventory inventory = Bukkit.createInventory(
                 new StaffActivityGuiHolder(StaffActivityGuiView.STAFF_SUMMARY, summary.latestName()),
                 SUMMARY_SIZE,
-                Component.text("StaffActivity: " + summary.latestName(), NamedTextColor.GOLD)
+                StaffActivityGuiItems.title(summary.latestName(), NamedTextColor.GOLD)
         );
         fillSummary(inventory, summary);
         player.openInventory(inventory);
     }
 
     private void fillSummary(Inventory inventory, StaffSummary summary) {
+        UUID uuid = UUID.fromString(summary.uuid());
         long activityPercent = activityPercent(summary.totalOnlineSeconds(), summary.totalActiveSeconds());
         inventory.setItem(4, StaffActivityGuiItems.playerHead(
-                UUID.fromString(summary.uuid()),
+                uuid,
                 summary.latestName(),
                 NamedTextColor.GOLD,
                 List.of(
@@ -104,13 +105,19 @@ public final class StaffActivityGui {
                 Material.ENDER_PEARL,
                 "Teleportit",
                 NamedTextColor.LIGHT_PURPLE,
-                List.of(Integer.toString(summary.totalTeleports()))
+                List.of(
+                        "Yhteensä: " + summary.totalTeleports(),
+                        "Klikkaa nähdäksesi lisätiedot."
+                )
         ));
         inventory.setItem(16, StaffActivityGuiItems.item(
                 Material.GRASS_BLOCK,
-                "Gamemode-vaihdot",
+                "Gamemode",
                 NamedTextColor.YELLOW,
-                List.of(Integer.toString(summary.totalGamemodeChanges()))
+                List.of(
+                        "Nykyinen: " + currentGamemode(uuid),
+                        "Vaihdot yhteensä: " + summary.totalGamemodeChanges()
+                )
         ));
         inventory.setItem(22, StaffActivityGuiItems.item(
                 Material.NETHER_STAR,
@@ -129,5 +136,13 @@ public final class StaffActivityGui {
             return 0;
         }
         return Math.round((activeSeconds * 100.0) / onlineSeconds);
+    }
+
+    private String currentGamemode(UUID uuid) {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) {
+            return "ei online";
+        }
+        return player.getGameMode().name().toLowerCase(Locale.ROOT);
     }
 }
