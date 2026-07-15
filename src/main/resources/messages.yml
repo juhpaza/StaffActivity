@@ -1,0 +1,14 @@
+prefix: "<gradient:#ff8a00:#ffb347><bold>StaffActivity</bold></gradient>"
+
+commands:
+  no-permission: "<red>Sinulla ei ole oikeutta tähän komentoon.</red>"
+  usage: "<gray>Käyttö: <white>/staffactivity debug</white> tai <white>/staffactivity reload</white></gray>"
+  reload: "<green>Asetukset ladattiin uudelleen.</green>"
+  debug:
+    header: "<gold>Tekninen tila</gold>"
+    version: "<gray>Versio:</gray> <white><version></white>"
+    database: "<gray>Tietokanta:</gray> <white><database></white>"
+    active-sessions: "<gray>Aktiiviset staff-sessiot:</gray> <white><count></white>"
+    pending-writes: "<gray>Odottavat tallennukset:</gray> <white><count></white>"
+    discord: "<gray>Discord:</gray> <white><status></white>"
+    timezone: "<gray>Aikavyöhyke:</gray> <white><timezone></white>"

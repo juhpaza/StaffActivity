@@ -1,0 +1,15 @@
+.gradle/
+build/
+out/
+*.iml
+.idea/
+.vscode/
+
+# Runtime data
+plugins/
+*.db
+*.db-*
+
+# Local secrets
+.env
+*.secret

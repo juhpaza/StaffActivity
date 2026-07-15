@@ -1,0 +1,67 @@
+plugin:
+  language: fi
+  timezone: Europe/Helsinki
+
+tracking:
+  permission: staffactivity.track
+  track-operators-automatically: false
+
+activity:
+  afk-timeout-seconds: 300
+  movement-threshold: 0.25
+  rotation-threshold-degrees: 10.0
+
+  triggers:
+    movement: true
+    rotation: true
+    chat: true
+    commands: true
+    inventory: true
+    block-interaction: true
+    entity-interaction: true
+    teleport: true
+    gamemode-change: true
+
+storage:
+  type: SQLITE
+  autosave-interval-seconds: 60
+
+command-tracking:
+  enabled: true
+  store-command-root: true
+  excluded-commands:
+    - login
+    - register
+    - changepassword
+    - password
+    - pin
+    - 2fa
+
+discord:
+  enabled: false
+  webhook-url: ""
+
+  reports:
+    daily:
+      enabled: false
+      time: "23:55"
+
+    weekly:
+      enabled: false
+      day: SUNDAY
+      time: "20:00"
+
+  events:
+    staff-join: false
+    staff-quit: false
+    plugin-errors: true
+
+integrations:
+  plan:
+    enabled: false
+
+  luckperms:
+    enabled: false
+
+  litebans:
+    enabled: false

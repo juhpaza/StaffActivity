@@ -1,0 +1,53 @@
+name: StaffActivity
+version: ${version}
+main: fi.juhpaza.staffactivity.StaffActivity
+api-version: '1.21'
+folia-supported: false
+authors:
+  - juhpaza
+description: Tracks staff activity, sessions and safe operational statistics.
+commands:
+  staffactivity:
+    description: StaffActivity main command.
+    usage: /<command> [debug|reload]
+    aliases:
+      - jpzsa
+permissions:
+  staffactivity.track:
+    description: Marks a staff member for activity tracking.
+    default: false
+  staffactivity.command.self:
+    description: Allows viewing own StaffActivity summary.
+    default: false
+  staffactivity.command.view:
+    description: Allows viewing another staff member's summary.
+    default: false
+  staffactivity.command.today:
+    description: Allows viewing daily StaffActivity stats.
+    default: false
+  staffactivity.command.week:
+    description: Allows viewing weekly StaffActivity stats.
+    default: false
+  staffactivity.command.top:
+    description: Allows viewing StaffActivity top lists.
+    default: false
+  staffactivity.command.sessions:
+    description: Allows viewing recent staff sessions.
+    default: false
+  staffactivity.command.reload:
+    description: Allows reloading StaffActivity configuration.
+    default: false
+  staffactivity.command.debug:
+    description: Allows viewing safe StaffActivity technical state.
+    default: op
+  staffactivity.admin:
+    description: Grants StaffActivity administrative permissions.
+    default: op
+    children:
+      staffactivity.command.view: true
+      staffactivity.command.today: true
+      staffactivity.command.week: true
+      staffactivity.command.top: true
+      staffactivity.command.sessions: true
+      staffactivity.command.reload: true
+      staffactivity.command.debug: true
