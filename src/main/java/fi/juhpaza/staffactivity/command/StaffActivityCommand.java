@@ -129,6 +129,10 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
             plugin.messageService().send(sender, "commands.usage");
             return true;
         }
+        if (sender instanceof Player player) {
+            openSummaryGui(player, plugin.databaseService().findSummaryByName(args[1]), args[1]);
+            return true;
+        }
         sendSummary(sender, plugin.databaseService().findSummaryByName(args[1]), args[1]);
         return true;
     }
@@ -329,6 +333,20 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
                 return;
             }
             renderer.summary(sender, summary.orElseThrow());
+        }));
+    }
+
+    private void openSummaryGui(Player player, CompletableFuture<Optional<StaffSummary>> future, String requestedName) {
+        future.whenComplete((summary, throwable) -> runSync(() -> {
+            if (throwable != null) {
+                failQuery(player, throwable);
+                return;
+            }
+            if (summary.isEmpty()) {
+                plugin.messageService().send(player, "commands.player-not-found", "player", requestedName);
+                return;
+            }
+            plugin.staffActivityGui().openSummary(player, summary.orElseThrow());
         }));
     }
 

@@ -18,5 +18,6 @@ Initial development version.
 - Active session autosave and crash recovery table.
 - Discord webhook client, scheduled daily/weekly reports and test command.
 - In-game management GUI with status cards and safe admin actions.
+- Graphical staff summary view through `/staffactivity view <player>` for in-game users.
 - Finnish default messages.
 - Unit tests for core session, database and Discord formatting behavior.

@@ -2,6 +2,7 @@ package fi.juhpaza.staffactivity.gui;
 
 import fi.juhpaza.staffactivity.StaffActivity;
 import fi.juhpaza.staffactivity.model.SessionSnapshot;
+import fi.juhpaza.staffactivity.model.StaffSummary;
 import fi.juhpaza.staffactivity.util.DurationFormatter;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -30,11 +31,21 @@ public final class StaffActivityGui {
 
     public void open(Player player) {
         Inventory inventory = Bukkit.createInventory(
-                new StaffActivityGuiHolder(),
+                new StaffActivityGuiHolder(StaffActivityGuiView.ADMIN),
                 SIZE,
                 Component.text("StaffActivity", NamedTextColor.GOLD)
         );
         fill(inventory);
+        player.openInventory(inventory);
+    }
+
+    public void openSummary(Player player, StaffSummary summary) {
+        Inventory inventory = Bukkit.createInventory(
+                new StaffActivityGuiHolder(StaffActivityGuiView.STAFF_SUMMARY),
+                SIZE,
+                Component.text("StaffActivity: " + summary.latestName(), NamedTextColor.GOLD)
+        );
+        fillSummary(inventory, summary);
         player.openInventory(inventory);
     }
 
@@ -93,6 +104,71 @@ public final class StaffActivityGui {
         inventory.setItem(40, actionItem(Material.BARRIER, "Sulje", NamedTextColor.RED, "Sulkee hallintapaneelin."));
     }
 
+    private void fillSummary(Inventory inventory, StaffSummary summary) {
+        long activityPercent = activityPercent(summary.totalOnlineSeconds(), summary.totalActiveSeconds());
+        inventory.setItem(4, item(
+                Material.PLAYER_HEAD,
+                summary.latestName(),
+                NamedTextColor.GOLD,
+                List.of(
+                        "UUID: " + summary.uuid(),
+                        "Ensimmäinen havainto: " + summary.firstSeen(),
+                        "Viimeksi nähty: " + summary.lastSeen()
+                )
+        ));
+        inventory.setItem(10, item(
+                Material.CLOCK,
+                "Online-aika",
+                NamedTextColor.GREEN,
+                List.of(
+                        DurationFormatter.seconds(summary.totalOnlineSeconds()),
+                        "Sessiot: " + summary.totalSessions()
+                )
+        ));
+        inventory.setItem(11, item(
+                Material.LIME_DYE,
+                "Aktiivinen aika",
+                NamedTextColor.GREEN,
+                List.of(
+                        DurationFormatter.seconds(summary.totalActiveSeconds()),
+                        "Aktiivisuus: " + activityPercent + "%"
+                )
+        ));
+        inventory.setItem(12, item(
+                Material.GRAY_DYE,
+                "AFK-aika",
+                NamedTextColor.GRAY,
+                List.of(DurationFormatter.seconds(summary.totalAfkSeconds()))
+        ));
+        inventory.setItem(14, item(
+                Material.COMMAND_BLOCK,
+                "Komennot",
+                NamedTextColor.AQUA,
+                List.of(Integer.toString(summary.totalCommands()))
+        ));
+        inventory.setItem(15, item(
+                Material.ENDER_PEARL,
+                "Teleportit",
+                NamedTextColor.LIGHT_PURPLE,
+                List.of(Integer.toString(summary.totalTeleports()))
+        ));
+        inventory.setItem(16, item(
+                Material.GRASS_BLOCK,
+                "Gamemode-vaihdot",
+                NamedTextColor.YELLOW,
+                List.of(Integer.toString(summary.totalGamemodeChanges()))
+        ));
+        inventory.setItem(22, item(
+                Material.NETHER_STAR,
+                "Staff-toimet",
+                NamedTextColor.RED,
+                List.of(Integer.toString(summary.totalStaffActions()))
+        ));
+        inventory.setItem(30, actionItem(Material.BOOK, "Viimeisimmät sessiot", NamedTextColor.AQUA, "Aja chatissa: /staffactivity sessions " + summary.latestName()));
+        inventory.setItem(32, actionItem(Material.PAPER, "Tämän viikon tilasto", NamedTextColor.GREEN, "Aja chatissa: /staffactivity week " + summary.latestName()));
+        inventory.setItem(40, actionItem(Material.BARRIER, "Sulje", NamedTextColor.RED, "Sulkee tilastonäkymän."));
+    }
+
     private ItemStack actionItem(Material material, String name, NamedTextColor color, String lore) {
         return item(material, name, color, List.of(lore));
     }
@@ -112,5 +188,12 @@ public final class StaffActivityGui {
 
     private String yesNo(boolean value) {
         return value ? "kyllä" : "ei";
+    }
+
+    private long activityPercent(long onlineSeconds, long activeSeconds) {
+        if (onlineSeconds <= 0) {
+            return 0;
+        }
+        return Math.round((activeSeconds * 100.0) / onlineSeconds);
     }
 }

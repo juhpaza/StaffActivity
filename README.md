@@ -72,7 +72,7 @@ SQLite JDBC 3.49.1.0
 | Command | Description | Permission |
 | --- | --- | --- |
 | `/staffactivity` | Show your own all-time summary | `staffactivity.command.self` |
-| `/staffactivity view <player>` | Show another staff member's all-time summary | `staffactivity.command.view` |
+| `/staffactivity view <player>` | Open another staff member's graphical all-time summary in-game; console receives text output | `staffactivity.command.view` |
 | `/staffactivity today [player]` | Show today's stats | `staffactivity.command.today` |
 | `/staffactivity week [player]` | Show this week's stats | `staffactivity.command.week` |
 | `/staffactivity top [online\|active\|actions]` | Show top staff activity lists | `staffactivity.command.top` |

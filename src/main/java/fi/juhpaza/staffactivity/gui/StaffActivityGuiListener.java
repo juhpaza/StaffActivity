@@ -18,11 +18,17 @@ public final class StaffActivityGuiListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getInventory().getHolder() instanceof StaffActivityGuiHolder)) {
+        if (!(event.getInventory().getHolder() instanceof StaffActivityGuiHolder holder)) {
             return;
         }
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        if (holder.view() == StaffActivityGuiView.STAFF_SUMMARY) {
+            if (event.getRawSlot() == 40) {
+                player.closeInventory();
+            }
             return;
         }
 
