@@ -76,6 +76,19 @@ public final class StaffTeleportRepository {
         }
     }
 
+    public int countTeleports(Connection connection, String uuid) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT COUNT(*)
+                FROM staff_teleport_events
+                WHERE uuid = ?
+                """)) {
+            statement.setString(1, uuid);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next() ? resultSet.getInt(1) : 0;
+            }
+        }
+    }
+
     private Boolean nullableBoolean(ResultSet resultSet, String column) throws SQLException {
         int value = resultSet.getInt(column);
         if (resultSet.wasNull()) {

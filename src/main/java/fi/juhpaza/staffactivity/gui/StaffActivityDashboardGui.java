@@ -158,9 +158,13 @@ final class StaffActivityDashboardGui {
     private org.bukkit.inventory.ItemStack trackingItem() {
         return StaffActivityGuiItems.item(
                 Material.NAME_TAG,
-                "Tracking Permission",
+                "Seurantasääntö",
                 NamedTextColor.AQUA,
-                List.of(plugin.configService().trackingPermission())
+                List.of(
+                        "Permission: " + plugin.configService().trackingPermission(),
+                        "OP auto-track: " + yesNo(plugin.configService().trackOperatorsAutomatically()),
+                        "Vain tällä oikeudella olevat pelaajat kirjataan."
+                )
         );
     }
 
@@ -187,11 +191,16 @@ final class StaffActivityDashboardGui {
     }
 
     private org.bukkit.inventory.ItemStack pendingWritesItem() {
+        int pendingWrites = plugin.databaseService().pendingOperations();
         return StaffActivityGuiItems.item(
-                Material.HOPPER,
-                "Pending Writes",
-                NamedTextColor.AQUA,
-                List.of(Integer.toString(plugin.databaseService().pendingOperations()))
+                pendingWrites == 0 ? Material.CHEST : Material.HOPPER,
+                "Tallennusjono",
+                pendingWrites == 0 ? NamedTextColor.GREEN : NamedTextColor.YELLOW,
+                List.of(
+                        "Odottavat kirjoitukset: " + pendingWrites,
+                        "Normaali tila: 0",
+                        "Jos arvo kasvaa, tietokanta jonoutuu."
+                )
         );
     }
 

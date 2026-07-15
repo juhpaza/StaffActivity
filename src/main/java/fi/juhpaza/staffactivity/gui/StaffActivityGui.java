@@ -18,11 +18,13 @@ import org.bukkit.inventory.Inventory;
 public final class StaffActivityGui {
     public static final int SUMMARY_SIZE = 45;
 
+    private final StaffActivity plugin;
     private final StaffActivityDashboardGui dashboardGui;
     private final StaffActivitySessionsGui sessionsGui;
     private final StaffActivityStatsMenuGui statsMenuGui;
 
     public StaffActivityGui(StaffActivity plugin) {
+        this.plugin = plugin;
         this.dashboardGui = new StaffActivityDashboardGui(plugin);
         this.sessionsGui = new StaffActivitySessionsGui(plugin);
         this.statsMenuGui = new StaffActivityStatsMenuGui();
@@ -49,16 +51,32 @@ public final class StaffActivityGui {
     }
 
     public void openSummary(Player player, StaffSummary summary) {
+        plugin.databaseService().countTeleports(summary.uuid()).whenComplete((teleportEvents, throwable) ->
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    if (!player.isOnline()) {
+                        return;
+                    }
+                    int displayedTeleports = summary.totalTeleports();
+                    if (throwable != null) {
+                        plugin.getLogger().warning("Failed to count teleport events for " + summary.latestName() + ": " + throwable.getMessage());
+                    } else {
+                        displayedTeleports = Math.max(summary.totalTeleports(), teleportEvents);
+                    }
+                    openSummary(player, summary, displayedTeleports);
+                }));
+    }
+
+    private void openSummary(Player player, StaffSummary summary, int displayedTeleports) {
         Inventory inventory = Bukkit.createInventory(
                 new StaffActivityGuiHolder(StaffActivityGuiView.STAFF_SUMMARY, summary.latestName()),
                 SUMMARY_SIZE,
                 StaffActivityGuiItems.title(summary.latestName(), NamedTextColor.GOLD)
         );
-        fillSummary(inventory, summary);
+        fillSummary(inventory, summary, displayedTeleports);
         player.openInventory(inventory);
     }
 
-    private void fillSummary(Inventory inventory, StaffSummary summary) {
+    private void fillSummary(Inventory inventory, StaffSummary summary, int displayedTeleports) {
         UUID uuid = UUID.fromString(summary.uuid());
         long activityPercent = activityPercent(summary.totalOnlineSeconds(), summary.totalActiveSeconds());
         inventory.setItem(4, StaffActivityGuiItems.playerHead(
@@ -106,7 +124,8 @@ public final class StaffActivityGui {
                 "Teleportit",
                 NamedTextColor.LIGHT_PURPLE,
                 List.of(
-                        "Yhteensä: " + summary.totalTeleports(),
+                        "Yhteensä: " + displayedTeleports,
+                        "Sessioihin kirjattu: " + summary.totalTeleports(),
                         "Klikkaa nähdäksesi lisätiedot."
                 )
         ));

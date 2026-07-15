@@ -2,9 +2,12 @@ package fi.juhpaza.staffactivity.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -144,6 +147,26 @@ public final class DatabaseService {
         });
     }
 
+    public CompletableFuture<Integer> countTeleports(String uuid) {
+        return supplyAsync(() -> {
+            ensureReady();
+            return teleportRepository.countTeleports(connection, uuid);
+        });
+    }
+
+    public CompletableFuture<List<String>> findMissingTables(List<String> tableNames) {
+        return supplyAsync(() -> {
+            ensureReady();
+            List<String> missingTables = new ArrayList<>();
+            for (String tableName : tableNames) {
+                if (!tableExists(tableName)) {
+                    missingTables.add(tableName);
+                }
+            }
+            return List.copyOf(missingTables);
+        });
+    }
+
     public CompletableFuture<PeriodStats> findPeriodStats(String uuid, String startDateInclusive, String endDateInclusive) {
         return supplyAsync(() -> {
             ensureReady();
@@ -222,6 +245,19 @@ public final class DatabaseService {
     private void ensureReady() {
         if (status != DatabaseStatus.READY || connection == null) {
             throw new IllegalStateException("Database is not ready");
+        }
+    }
+
+    private boolean tableExists(String tableName) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT name
+                FROM sqlite_master
+                WHERE type = 'table' AND name = ?
+                """)) {
+            statement.setString(1, tableName);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return resultSet.next();
+            }
         }
     }
 

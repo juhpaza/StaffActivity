@@ -33,6 +33,7 @@ final class StaffTeleportRepositoryTest {
             List<RecentTeleport> teleports = repository.findRecentTeleports(connection, uuid.toString(), 10);
 
             assertEquals(2, teleports.size());
+            assertEquals(2, repository.countTeleports(connection, uuid.toString()));
             assertEquals("2026-07-15T10:05:00Z", teleports.getFirst().createdAt());
             assertEquals("PLUGIN", teleports.getFirst().cause());
             assertTrue(teleports.getFirst().vanished());

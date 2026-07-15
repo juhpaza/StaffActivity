@@ -2,6 +2,7 @@ package fi.juhpaza.staffactivity;
 
 import fi.juhpaza.staffactivity.command.StaffActivityCommand;
 import fi.juhpaza.staffactivity.config.ConfigService;
+import fi.juhpaza.staffactivity.database.DatabaseMigrator;
 import fi.juhpaza.staffactivity.database.DatabaseService;
 import fi.juhpaza.staffactivity.discord.DiscordReportService;
 import fi.juhpaza.staffactivity.gui.StaffActivityGui;
@@ -21,6 +22,16 @@ import org.bukkit.plugin.java.JavaPlugin;
  * Main Paper plugin entrypoint for StaffActivity.
  */
 public final class StaffActivity extends JavaPlugin {
+    private static final List<String> REQUIRED_TABLES = List.of(
+            "schema_version",
+            "staff_members",
+            "staff_sessions",
+            "staff_daily_stats",
+            "staff_actions",
+            "staff_active_sessions",
+            "staff_teleport_events"
+    );
+
     private ConfigService configService;
     private DatabaseService databaseService;
     private DiscordReportService discordReportService;
@@ -44,6 +55,7 @@ public final class StaffActivity extends JavaPlugin {
         registerCommands();
         getServer().getPluginManager().registerEvents(new StaffActivityListener(this), this);
         getServer().getPluginManager().registerEvents(new StaffActivityGuiListener(this), this);
+        logStartupConfiguration();
         databaseService.initialize(configService.timezone()).whenComplete((ignored, throwable) -> {
             if (throwable != null) {
                 getLogger().severe("Database initialization failed: " + throwable.getMessage());
@@ -52,6 +64,7 @@ public final class StaffActivity extends JavaPlugin {
                     startAutosave();
                     discordReportService.start();
                     getLogger().info("Database initialized.");
+                    logDatabaseStartupDiagnostics();
                 });
             }
         });
@@ -141,5 +154,37 @@ public final class StaffActivity extends JavaPlugin {
         StaffActivityCommand executor = new StaffActivityCommand(this);
         command.setExecutor(executor);
         command.setTabCompleter(executor);
+    }
+
+    private void logStartupConfiguration() {
+        getLogger().info("Startup diagnostics: version=" + getPluginMeta().getVersion()
+                + ", java=" + System.getProperty("java.version")
+                + ", server=" + getServer().getVersion()
+                + ", schemaTarget=" + DatabaseMigrator.CURRENT_SCHEMA_VERSION);
+        getLogger().info("Config diagnostics: timezone=" + configService.timezoneId()
+                + ", trackingPermission=" + configService.trackingPermission()
+                + ", trackOperatorsAutomatically=" + configService.trackOperatorsAutomatically()
+                + ", autosaveIntervalSeconds=" + configService.autosaveInterval().toSeconds());
+        getLogger().info("Feature diagnostics: commandTracking=" + enabledDisabled(configService.commandTrackingEnabled())
+                + ", teleportHistory=" + enabledDisabled(configService.teleportTrigger())
+                + ", discord=" + enabledDisabled(configService.discordEnabled())
+                + ", discordWebhookConfigured=" + configService.discordConfigured());
+    }
+
+    private void logDatabaseStartupDiagnostics() {
+        databaseService.findMissingTables(REQUIRED_TABLES).whenComplete((missingTables, throwable) ->
+                getServer().getScheduler().runTask(this, () -> {
+                    if (throwable != null) {
+                        getLogger().warning("Database startup verification failed: " + throwable.getMessage());
+                    } else if (missingTables.isEmpty()) {
+                        getLogger().info("Database startup verification passed: all required tables are present.");
+                    } else {
+                        getLogger().severe("Database startup verification failed, missing tables: " + String.join(", ", missingTables));
+                    }
+                }));
+    }
+
+    private String enabledDisabled(boolean value) {
+        return value ? "enabled" : "disabled";
     }
 }
