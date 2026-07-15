@@ -12,6 +12,7 @@ import fi.juhpaza.staffactivity.message.MessageService;
 import fi.juhpaza.staffactivity.model.SessionCloseReason;
 import fi.juhpaza.staffactivity.model.SessionSnapshot;
 import fi.juhpaza.staffactivity.service.SessionService;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.util.List;
 import org.bukkit.command.PluginCommand;
@@ -43,7 +44,7 @@ public final class StaffActivity extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        saveResource("messages.yml", false);
+        saveDefaultMessages();
 
         this.configService = new ConfigService(this);
         this.databaseService = new DatabaseService(this);
@@ -63,12 +64,12 @@ public final class StaffActivity extends JavaPlugin {
                 getServer().getScheduler().runTask(this, () -> {
                     startAutosave();
                     discordReportService.start();
-                    getLogger().info("Database initialized.");
+                    getLogger().info("Database: SQLite connection established.");
                     logDatabaseStartupDiagnostics();
                 });
             }
         });
-        getLogger().info("StaffActivity enabled.");
+        getLogger().info("StaffActivity ready.");
     }
 
     @Override
@@ -156,19 +157,25 @@ public final class StaffActivity extends JavaPlugin {
         command.setTabCompleter(executor);
     }
 
+    private void saveDefaultMessages() {
+        if (!Files.exists(getDataFolder().toPath().resolve("messages.yml"))) {
+            saveResource("messages.yml", false);
+        }
+    }
+
     private void logStartupConfiguration() {
-        getLogger().info("Startup diagnostics: version=" + getPluginMeta().getVersion()
-                + ", java=" + System.getProperty("java.version")
-                + ", server=" + getServer().getVersion()
-                + ", schemaTarget=" + DatabaseMigrator.CURRENT_SCHEMA_VERSION);
-        getLogger().info("Config diagnostics: timezone=" + configService.timezoneId()
-                + ", trackingPermission=" + configService.trackingPermission()
-                + ", trackOperatorsAutomatically=" + configService.trackOperatorsAutomatically()
-                + ", autosaveIntervalSeconds=" + configService.autosaveInterval().toSeconds());
-        getLogger().info("Feature diagnostics: commandTracking=" + enabledDisabled(configService.commandTrackingEnabled())
-                + ", teleportHistory=" + enabledDisabled(configService.teleportTrigger())
-                + ", discord=" + enabledDisabled(configService.discordEnabled())
-                + ", discordWebhookConfigured=" + configService.discordConfigured());
+        getLogger().info("Loading StaffActivity " + getPluginMeta().getVersion());
+        getLogger().info("Runtime: Java " + System.getProperty("java.version"));
+        getLogger().info("Server: " + getServer().getVersion());
+        getLogger().info("Database: preparing SQLite schema target v" + DatabaseMigrator.CURRENT_SCHEMA_VERSION + ".");
+        getLogger().info("Config: timezone " + configService.timezoneId() + ".");
+        getLogger().info("Tracking: permission '" + configService.trackingPermission() + "'.");
+        getLogger().info("Tracking: OP auto-track " + enabledDisabled(configService.trackOperatorsAutomatically()) + ".");
+        getLogger().info("Autosave: active session snapshots every " + configService.autosaveInterval().toSeconds() + " seconds.");
+        getLogger().info("Features: command tracking " + enabledDisabled(configService.commandTrackingEnabled()) + ".");
+        getLogger().info("Features: teleport history " + enabledDisabled(configService.teleportTrigger()) + ".");
+        getLogger().info("Discord: reports " + enabledDisabled(configService.discordEnabled()) + ".");
+        getLogger().info("Discord: webhook configured " + yesNo(configService.discordConfigured()) + ".");
     }
 
     private void logDatabaseStartupDiagnostics() {
@@ -177,14 +184,18 @@ public final class StaffActivity extends JavaPlugin {
                     if (throwable != null) {
                         getLogger().warning("Database startup verification failed: " + throwable.getMessage());
                     } else if (missingTables.isEmpty()) {
-                        getLogger().info("Database startup verification passed: all required tables are present.");
+                        getLogger().info("Database: all required tables are present.");
                     } else {
-                        getLogger().severe("Database startup verification failed, missing tables: " + String.join(", ", missingTables));
+                        getLogger().severe("Database: missing required tables: " + String.join(", ", missingTables));
                     }
                 }));
     }
 
     private String enabledDisabled(boolean value) {
         return value ? "enabled" : "disabled";
+    }
+
+    private String yesNo(boolean value) {
+        return value ? "yes" : "no";
     }
 }
