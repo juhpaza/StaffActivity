@@ -145,7 +145,7 @@ public final class StaffActivityGui {
                 List.of(Integer.toString(summary.totalStaffActions()))
         ));
         inventory.setItem(29, StaffActivityGuiItems.actionItem(Material.MAP, "Tämän päivän tilasto", NamedTextColor.YELLOW, "Klikkaa avataksesi päivän yhteenvedon chattiin."));
-        inventory.setItem(30, StaffActivityGuiItems.actionItem(Material.BOOK, "Viimeisimmät sessiot", NamedTextColor.AQUA, "Klikkaa avataksesi viimeisimmät sessiot chattiin."));
+        inventory.setItem(30, StaffActivityGuiItems.actionItem(Material.BOOK, "Viimeisimmät jaksot", NamedTextColor.AQUA, "Klikkaa avataksesi viimeisimmät aktiivisuusjaksot chattiin."));
         inventory.setItem(32, StaffActivityGuiItems.actionItem(Material.PAPER, "Tämän viikon tilasto", NamedTextColor.GREEN, "Klikkaa avataksesi viikon yhteenvedon chattiin."));
         inventory.setItem(40, StaffActivityGuiItems.actionItem(Material.BARRIER, "Sulje", NamedTextColor.RED, "Sulkee tilastonäkymän."));
     }

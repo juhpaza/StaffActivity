@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "fi.juhpaza"
-version = "0.2.2-SNAPSHOT"
+version = "0.2.3-SNAPSHOT"
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")

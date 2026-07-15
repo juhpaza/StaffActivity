@@ -7,7 +7,13 @@ import fi.juhpaza.staffactivity.model.RecentSession;
 import fi.juhpaza.staffactivity.model.StaffSummary;
 import fi.juhpaza.staffactivity.model.TopEntry;
 import fi.juhpaza.staffactivity.util.DurationFormatter;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import org.bukkit.command.CommandSender;
 
@@ -15,6 +21,11 @@ import org.bukkit.command.CommandSender;
  * Renders StaffActivity command responses.
  */
 public final class CommandResponseRenderer {
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM. HH:mm");
+    private static final DateTimeFormatter FULL_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
     private final StaffActivity plugin;
 
     public CommandResponseRenderer(StaffActivity plugin) {
@@ -81,12 +92,13 @@ public final class CommandResponseRenderer {
             plugin.messageService().send(sender, "commands.sessions.empty");
             return;
         }
+        int rank = 1;
         for (RecentSession session : sessions) {
             plugin.messageService().send(sender, "commands.sessions.row",
-                    "started", session.startedAt(),
-                    "ended", session.endedAt(),
+                    "rank", Integer.toString(rank++),
+                    "period", period(session),
                     "online", DurationFormatter.seconds(session.onlineSeconds()),
-                    "reason", session.closeReason());
+                    "reason", closeReason(session.closeReason()));
         }
     }
 
@@ -104,5 +116,48 @@ public final class CommandResponseRenderer {
                     "player", entry.latestName(),
                     "value", value);
         }
+    }
+
+    private String period(RecentSession session) {
+        ZoneId timezone = plugin.configService().timezone();
+        ZonedDateTime started = Instant.parse(session.startedAt()).atZone(timezone);
+        ZonedDateTime ended = Instant.parse(session.endedAt()).atZone(timezone);
+        if (started.toLocalDate().equals(ended.toLocalDate())) {
+            return dateLabel(started) + " " + TIME_FORMATTER.format(started) + "-" + TIME_FORMATTER.format(ended);
+        }
+        return dateTimeLabel(started) + " - " + dateTimeLabel(ended);
+    }
+
+    private String dateLabel(ZonedDateTime time) {
+        LocalDate date = time.toLocalDate();
+        LocalDate today = LocalDate.now(plugin.configService().timezone());
+        if (date.equals(today)) {
+            return "Tänään";
+        }
+        if (date.equals(today.minusDays(1))) {
+            return "Eilen";
+        }
+        if (date.getYear() == today.getYear()) {
+            return DATE_FORMATTER.format(time);
+        }
+        return DateTimeFormatter.ISO_LOCAL_DATE.format(date);
+    }
+
+    private String dateTimeLabel(ZonedDateTime time) {
+        LocalDate today = LocalDate.now(plugin.configService().timezone());
+        if (time.toLocalDate().getYear() == today.getYear()) {
+            return DATE_TIME_FORMATTER.format(time);
+        }
+        return FULL_DATE_TIME_FORMATTER.format(time);
+    }
+
+    private String closeReason(String rawReason) {
+        return switch (rawReason.toUpperCase(Locale.ROOT)) {
+            case "NORMAL" -> "Pelaaja poistui";
+            case "PERMISSION_REMOVED" -> "Seuranta päättyi";
+            case "PLUGIN_SHUTDOWN" -> "Plugin sammutettu";
+            case "SERVER_SHUTDOWN" -> "Palvelin sammutettu";
+            default -> rawReason.toLowerCase(Locale.ROOT).replace('_', ' ');
+        };
     }
 }
