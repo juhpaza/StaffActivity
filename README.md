@@ -4,7 +4,7 @@ StaffActivity is a Paper plugin for tracking staff presence and operational acti
 
 The plugin is built for server owners who want a clear, low-noise view of staff online time, active time, AFK time and basic moderation activity without giving the plugin broad audit-log responsibilities. It only tracks players who have an explicit tracking permission.
 
-Current build: `0.2.5-SNAPSHOT`.
+Current build: `0.2.6-SNAPSHOT`.
 
 ## Project Description
 
@@ -59,7 +59,7 @@ SQLite JDBC 3.49.1.0
 2. Copy the jar to the server:
 
    ```text
-   plugins/StaffActivity-0.2.5-SNAPSHOT.jar
+   plugins/StaffActivity-0.2.6-SNAPSHOT.jar
    ```
 
 3. Start the server once so `config.yml` and `messages.yml` are generated.
@@ -92,7 +92,7 @@ Alias:
 /jpzsa
 ```
 
-The in-game staff summary opened by `/staffactivity view <player>` includes clickable buttons that run the existing `today`, `week` and `sessions` command paths for the selected player. The teleport counter opens recent teleport history captured by the installed `0.2.5-SNAPSHOT` build or newer.
+The in-game staff summary opened by `/staffactivity view <player>` includes clickable buttons that run the existing `today`, `week` and `sessions` command paths for the selected player. The teleport counter opens recent teleport history captured by the installed `0.2.6-SNAPSHOT` build or newer.
 
 The in-game Dashboard opened by `/staffactivity gui` is the main StaffActivity menu. It shows plugin version, database status, pending writes, Discord status, online staff, tracking permission, timezone and active session count, and links to existing online staff, top, today, week, reload and Discord test flows.
 
@@ -238,7 +238,7 @@ Linux/macOS:
 The built plugin jar is written to:
 
 ```text
-build/libs/StaffActivity-0.2.5-SNAPSHOT.jar
+build/libs/StaffActivity-0.2.6-SNAPSHOT.jar
 ```
 
 ## Testing
@@ -257,7 +257,7 @@ Run build and tests:
 
 ## Current Status
 
-Current build: `0.2.5-SNAPSHOT`.
+Current build: `0.2.6-SNAPSHOT`.
 
 This project is still a snapshot-stage implementation. The core architecture, SQLite persistence, session tracking, commands, autosave, Discord webhook foundation, in-game dashboard, staff summary GUI and teleport history tracking are in place.
 

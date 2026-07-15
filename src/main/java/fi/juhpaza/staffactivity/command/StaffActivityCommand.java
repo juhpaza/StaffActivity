@@ -6,11 +6,14 @@ import fi.juhpaza.staffactivity.model.PeriodStats;
 import fi.juhpaza.staffactivity.model.RecentSession;
 import fi.juhpaza.staffactivity.model.StaffSummary;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -46,7 +49,7 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
             case "debug" -> handleDebug(sender);
             case "reload" -> handleReload(sender);
             default -> {
-                plugin.messageService().send(sender, "commands.usage");
+                sendUsage(sender);
                 yield true;
             }
         };
@@ -54,10 +57,26 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length != 1) {
-            return List.of();
+        if (args.length == 1) {
+            return matching(firstLevelOptions(sender), args[0]);
         }
 
+        if (args.length == 2) {
+            return switch (args[0].toLowerCase(Locale.ROOT)) {
+                case "view" -> has(sender, "staffactivity.command.view") ? matching(onlinePlayerNames(), args[1]) : List.of();
+                case "today" -> has(sender, "staffactivity.command.today") ? matching(onlinePlayerNames(), args[1]) : List.of();
+                case "week" -> has(sender, "staffactivity.command.week") ? matching(onlinePlayerNames(), args[1]) : List.of();
+                case "sessions" -> has(sender, "staffactivity.command.sessions") ? matching(onlinePlayerNames(), args[1]) : List.of();
+                case "top" -> has(sender, "staffactivity.command.top") ? matching(List.of("online", "active", "actions"), args[1]) : List.of();
+                case "discord" -> has(sender, "staffactivity.command.debug") ? matching(List.of("test"), args[1]) : List.of();
+                default -> List.of();
+            };
+        }
+
+        return List.of();
+    }
+
+    private List<String> firstLevelOptions(CommandSender sender) {
         List<String> options = new ArrayList<>();
         if (has(sender, "staffactivity.command.debug")) {
             options.add("debug");
@@ -84,10 +103,21 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
         if (has(sender, "staffactivity.command.gui")) {
             options.add("gui");
         }
+        return options;
+    }
 
-        String prefix = args[0].toLowerCase();
+    private List<String> onlinePlayerNames() {
+        return Bukkit.getOnlinePlayers().stream()
+                .map(Player::getName)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+    }
+
+    private List<String> matching(List<String> options, String input) {
+        String prefix = input.toLowerCase(Locale.ROOT);
         return options.stream()
-                .filter(option -> option.startsWith(prefix))
+                .filter(option -> option.toLowerCase(Locale.ROOT).startsWith(prefix))
+                .sorted(Comparator.naturalOrder())
                 .toList();
     }
 
@@ -126,7 +156,7 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
             return true;
         }
         if (args.length < 2) {
-            plugin.messageService().send(sender, "commands.usage");
+            sendUsage(sender);
             return true;
         }
         if (sender instanceof Player player) {
@@ -180,7 +210,7 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
             return true;
         }
         if (args.length < 2) {
-            plugin.messageService().send(sender, "commands.usage");
+            sendUsage(sender);
             return true;
         }
         String requestedName = args[1];
@@ -255,7 +285,7 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
             default -> null;
         };
         if (metricColumn == null) {
-            plugin.messageService().send(sender, "commands.usage");
+            sendUsage(sender);
             return true;
         }
 
@@ -303,7 +333,7 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
             return true;
         }
         if (args.length < 2 || !"test".equalsIgnoreCase(args[1])) {
-            plugin.messageService().send(sender, "commands.usage");
+            sendUsage(sender);
             return true;
         }
         plugin.discordReportService().sendTest()
@@ -320,6 +350,39 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
 
     private boolean has(CommandSender sender, String permission) {
         return sender.hasPermission(permission) || sender.hasPermission("staffactivity.admin");
+    }
+
+    private void sendUsage(CommandSender sender) {
+        plugin.messageService().send(sender, "commands.usage.header");
+        if (has(sender, "staffactivity.command.self")) {
+            plugin.messageService().send(sender, "commands.usage.self");
+        }
+        if (has(sender, "staffactivity.command.gui")) {
+            plugin.messageService().send(sender, "commands.usage.gui");
+        }
+        if (has(sender, "staffactivity.command.view")) {
+            plugin.messageService().send(sender, "commands.usage.view");
+        }
+        if (has(sender, "staffactivity.command.today")) {
+            plugin.messageService().send(sender, "commands.usage.today");
+        }
+        if (has(sender, "staffactivity.command.week")) {
+            plugin.messageService().send(sender, "commands.usage.week");
+        }
+        if (has(sender, "staffactivity.command.sessions")) {
+            plugin.messageService().send(sender, "commands.usage.sessions");
+        }
+        if (has(sender, "staffactivity.command.top")) {
+            plugin.messageService().send(sender, "commands.usage.top");
+        }
+        if (has(sender, "staffactivity.command.debug")) {
+            plugin.messageService().send(sender, "commands.usage.discord");
+            plugin.messageService().send(sender, "commands.usage.debug");
+        }
+        if (has(sender, "staffactivity.command.reload")) {
+            plugin.messageService().send(sender, "commands.usage.reload");
+        }
+        plugin.messageService().send(sender, "commands.usage.tab-complete");
     }
 
     private void sendSummary(CommandSender sender, CompletableFuture<Optional<StaffSummary>> future, String requestedName) {

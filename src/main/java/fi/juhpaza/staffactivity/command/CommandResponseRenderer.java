@@ -38,7 +38,8 @@ public final class CommandResponseRenderer {
                 "sessions", Integer.toString(value.totalSessions()),
                 "online", DurationFormatter.seconds(value.totalOnlineSeconds()),
                 "active", DurationFormatter.seconds(value.totalActiveSeconds()),
-                "afk", DurationFormatter.seconds(value.totalAfkSeconds()));
+                "afk", DurationFormatter.seconds(value.totalAfkSeconds()),
+                "activity_percent", Long.toString(activityPercent(value.totalOnlineSeconds(), value.totalActiveSeconds())));
         plugin.messageService().send(sender, "commands.summary.counters",
                 "commands", Integer.toString(value.totalCommands()),
                 "teleports", Integer.toString(value.totalTeleports()),
@@ -60,7 +61,8 @@ public final class CommandResponseRenderer {
                 "sessions", Integer.toString(value.sessionCount()),
                 "online", DurationFormatter.seconds(value.onlineSeconds()),
                 "active", DurationFormatter.seconds(value.activeSeconds()),
-                "afk", DurationFormatter.seconds(value.afkSeconds()));
+                "afk", DurationFormatter.seconds(value.afkSeconds()),
+                "activity_percent", Long.toString(activityPercent(value.onlineSeconds(), value.activeSeconds())));
         plugin.messageService().send(sender, "commands.today.counters",
                 "commands", Integer.toString(value.commandCount()),
                 "teleports", Integer.toString(value.teleportCount()),
@@ -78,7 +80,8 @@ public final class CommandResponseRenderer {
                 "sessions", Integer.toString(period.sessionCount()),
                 "online", DurationFormatter.seconds(period.onlineSeconds()),
                 "active", DurationFormatter.seconds(period.activeSeconds()),
-                "afk", DurationFormatter.seconds(period.afkSeconds()));
+                "afk", DurationFormatter.seconds(period.afkSeconds()),
+                "activity_percent", Long.toString(activityPercent(period.onlineSeconds(), period.activeSeconds())));
         plugin.messageService().send(sender, "commands.week.counters",
                 "commands", Integer.toString(period.commandCount()),
                 "teleports", Integer.toString(period.teleportCount()),
@@ -98,6 +101,10 @@ public final class CommandResponseRenderer {
                     "rank", Integer.toString(rank++),
                     "period", period(session),
                     "online", DurationFormatter.seconds(session.onlineSeconds()),
+                    "active", DurationFormatter.seconds(session.activeSeconds()),
+                    "afk", DurationFormatter.seconds(session.afkSeconds()),
+                    "activity_percent", Long.toString(activityPercent(session.onlineSeconds(), session.activeSeconds())),
+                    "actions", Integer.toString(session.commandCount() + session.teleportCount() + session.gamemodeChangeCount() + session.staffActionCount()),
                     "reason", closeReason(session.closeReason()));
         }
     }
@@ -159,5 +166,12 @@ public final class CommandResponseRenderer {
             case "SERVER_SHUTDOWN" -> "Palvelin sammutettu";
             default -> rawReason.toLowerCase(Locale.ROOT).replace('_', ' ');
         };
+    }
+
+    private long activityPercent(long onlineSeconds, long activeSeconds) {
+        if (onlineSeconds <= 0) {
+            return 0;
+        }
+        return Math.min(100, Math.round((activeSeconds * 100.0) / onlineSeconds));
     }
 }

@@ -2,9 +2,21 @@
 
 All notable changes to StaffActivity will be documented in this file.
 
-## 0.2.5-SNAPSHOT
+## 0.2.6-SNAPSHOT
 
 Current snapshot build.
+
+### Changed
+
+- Reworked `/staffactivity` usage output into clearer per-command chat lines.
+- Added tab-completion for subcommands, top-list modes, Discord test and online player arguments.
+- Clarified command counters as activity markers instead of implying full command logging.
+- Made recent activity sessions show online, active, AFK, activity percentage, marker count and close reason.
+- Made recent teleport history easier to read by splitting each teleport into a summary line and a route line.
+
+## 0.2.5-SNAPSHOT
+
+Previous snapshot build.
 
 ### Added
 
@@ -21,7 +33,7 @@ Current snapshot build.
 
 ## 0.1.0-SNAPSHOT
 
-Initial development version. This is kept for project history; the current documented build is `0.2.5-SNAPSHOT`.
+Initial development version. This is kept for project history; the current documented build is `0.2.6-SNAPSHOT`.
 
 ### Added
 

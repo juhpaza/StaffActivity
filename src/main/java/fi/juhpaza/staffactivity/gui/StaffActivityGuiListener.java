@@ -187,17 +187,28 @@ public final class StaffActivityGuiListener implements Listener {
             player.sendMessage(Component.text("Tallennettuja teleportteja ei vielä löytynyt.", NamedTextColor.GRAY));
             return;
         }
+        player.sendMessage(Component.text("Näyttää mihin staff siirtyi, mistä siirtyi ja oliko vanish päällä.", NamedTextColor.DARK_GRAY));
+        int rank = 1;
         for (RecentTeleport teleport : teleports) {
-            player.sendMessage(Component.text(teleport.createdAt(), NamedTextColor.DARK_GRAY)
-                    .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
+            player.sendMessage(Component.text("#" + rank++ + " ", NamedTextColor.DARK_GRAY)
+                    .append(Component.text(timeLabel(teleport.createdAt()), NamedTextColor.GRAY))
+                    .append(Component.text(" | syy: ", NamedTextColor.DARK_GRAY))
                     .append(Component.text(teleport.cause(), NamedTextColor.YELLOW))
-                    .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
-                    .append(Component.text(location(teleport.fromWorld(), teleport.fromX(), teleport.fromY(), teleport.fromZ()), NamedTextColor.GRAY))
-                    .append(Component.text(" -> ", NamedTextColor.DARK_GRAY))
-                    .append(Component.text(location(teleport.toWorld(), teleport.toX(), teleport.toY(), teleport.toZ()), NamedTextColor.WHITE))
                     .append(Component.text(" | vanish: ", NamedTextColor.DARK_GRAY))
                     .append(Component.text(vanishLabel(teleport.vanished()), vanishColor(teleport.vanished()))));
+            player.sendMessage(Component.text("  lähtö: ", NamedTextColor.DARK_GRAY)
+                    .append(Component.text(location(teleport.fromWorld(), teleport.fromX(), teleport.fromY(), teleport.fromZ()), NamedTextColor.GRAY))
+                    .append(Component.text(" -> kohde: ", NamedTextColor.DARK_GRAY))
+                    .append(Component.text(location(teleport.toWorld(), teleport.toX(), teleport.toY(), teleport.toZ()), NamedTextColor.WHITE)));
         }
+    }
+
+    private String timeLabel(String createdAt) {
+        int timeStart = createdAt.indexOf('T');
+        if (timeStart >= 0 && createdAt.length() >= timeStart + 6) {
+            return createdAt.substring(0, timeStart) + " " + createdAt.substring(timeStart + 1, timeStart + 6);
+        }
+        return createdAt;
     }
 
     private String location(String world, double x, double y, double z) {

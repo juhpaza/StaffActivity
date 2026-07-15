@@ -74,7 +74,7 @@ final class StaffActivitySessionsGui {
                         "Online: " + DurationFormatter.seconds(snapshot.onlineTime().toSeconds()),
                         "Active: " + DurationFormatter.seconds(snapshot.activeTime().toSeconds()),
                         "AFK: " + DurationFormatter.seconds(snapshot.afkTime().toSeconds()),
-                        "Komennot: " + snapshot.commandCount(),
+                        "Komentoaktiivisuus: " + snapshot.commandCount(),
                         "Gamemode: " + currentGamemode(snapshot.uuid())
                 )
         );

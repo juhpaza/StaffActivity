@@ -12,7 +12,7 @@ libraries:
 commands:
   staffactivity:
     description: StaffActivity main command.
-    usage: /<command> [debug|reload]
+    usage: /<command> [gui|view|today|week|top|sessions|discord|debug|reload]
     aliases:
       - jpzsa
 permissions:
