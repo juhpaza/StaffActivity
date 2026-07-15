@@ -6,6 +6,8 @@ folia-supported: false
 authors:
   - juhpaza
 description: Tracks staff activity, sessions and safe operational statistics.
+libraries:
+  - org.xerial:sqlite-jdbc:3.49.1.0
 commands:
   staffactivity:
     description: StaffActivity main command.

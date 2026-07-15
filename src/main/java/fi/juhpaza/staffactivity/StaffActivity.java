@@ -2,6 +2,7 @@ package fi.juhpaza.staffactivity;
 
 import fi.juhpaza.staffactivity.command.StaffActivityCommand;
 import fi.juhpaza.staffactivity.config.ConfigService;
+import fi.juhpaza.staffactivity.database.DatabaseService;
 import fi.juhpaza.staffactivity.message.MessageService;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -11,6 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  */
 public final class StaffActivity extends JavaPlugin {
     private ConfigService configService;
+    private DatabaseService databaseService;
     private MessageService messageService;
 
     @Override
@@ -19,19 +21,34 @@ public final class StaffActivity extends JavaPlugin {
         saveResource("messages.yml", false);
 
         this.configService = new ConfigService(this);
+        this.databaseService = new DatabaseService(this);
         this.messageService = new MessageService(this);
 
         registerCommands();
+        databaseService.initialize().whenComplete((ignored, throwable) -> {
+            if (throwable != null) {
+                getLogger().severe("Database initialization failed: " + throwable.getMessage());
+            } else {
+                getLogger().info("Database initialized.");
+            }
+        });
         getLogger().info("StaffActivity enabled.");
     }
 
     @Override
     public void onDisable() {
+        if (databaseService != null) {
+            databaseService.close();
+        }
         getLogger().info("StaffActivity disabled.");
     }
 
     public ConfigService configService() {
         return configService;
+    }
+
+    public DatabaseService databaseService() {
+        return databaseService;
     }
 
     public MessageService messageService() {

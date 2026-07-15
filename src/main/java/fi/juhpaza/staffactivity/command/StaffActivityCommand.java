@@ -63,9 +63,9 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
 
         plugin.messageService().send(sender, "commands.debug.header");
         plugin.messageService().send(sender, "commands.debug.version", "version", plugin.getPluginMeta().getVersion());
-        plugin.messageService().send(sender, "commands.debug.database", "database", "not-initialized");
+        plugin.messageService().send(sender, "commands.debug.database", "database", plugin.databaseService().status().name().toLowerCase());
         plugin.messageService().send(sender, "commands.debug.active-sessions", "count", "0");
-        plugin.messageService().send(sender, "commands.debug.pending-writes", "count", "0");
+        plugin.messageService().send(sender, "commands.debug.pending-writes", "count", Integer.toString(plugin.databaseService().pendingOperations()));
         plugin.messageService().send(sender, "commands.debug.discord", "status", plugin.configService().discordEnabled() ? "enabled" : "disabled");
         plugin.messageService().send(sender, "commands.debug.timezone", "timezone", plugin.configService().timezoneId());
         return true;

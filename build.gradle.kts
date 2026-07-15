@@ -8,8 +8,12 @@ version = "0.1.0-SNAPSHOT"
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
 
+    runtimeOnly("org.xerial:sqlite-jdbc:3.49.1.0")
+
     testImplementation(platform("org.junit:junit-bom:5.11.4"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.xerial:sqlite-jdbc:3.49.1.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks {
