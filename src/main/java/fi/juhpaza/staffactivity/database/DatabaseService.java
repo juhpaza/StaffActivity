@@ -3,6 +3,7 @@ package fi.juhpaza.staffactivity.database;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.ZoneId;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -10,6 +11,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import fi.juhpaza.staffactivity.model.SessionSnapshot;
+import fi.juhpaza.staffactivity.repository.StaffSessionRepository;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -20,6 +23,7 @@ public final class DatabaseService {
 
     private final JavaPlugin plugin;
     private final DatabaseMigrator migrator;
+    private final StaffSessionRepository sessionRepository;
     private final ExecutorService executor;
     private final AtomicInteger pendingOperations = new AtomicInteger();
 
@@ -27,12 +31,13 @@ public final class DatabaseService {
     private Connection connection;
 
     public DatabaseService(JavaPlugin plugin) {
-        this(plugin, new DatabaseMigrator());
+        this(plugin, new DatabaseMigrator(), new StaffSessionRepository());
     }
 
-    DatabaseService(JavaPlugin plugin, DatabaseMigrator migrator) {
+    DatabaseService(JavaPlugin plugin, DatabaseMigrator migrator, StaffSessionRepository sessionRepository) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.migrator = Objects.requireNonNull(migrator, "migrator");
+        this.sessionRepository = Objects.requireNonNull(sessionRepository, "sessionRepository");
         this.executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "StaffActivity-Database");
             thread.setDaemon(true);
@@ -63,6 +68,15 @@ public final class DatabaseService {
 
     public int pendingOperations() {
         return pendingOperations.get();
+    }
+
+    public CompletableFuture<Void> saveClosedSession(SessionSnapshot snapshot, ZoneId timezone) {
+        return runAsync(() -> {
+            if (status != DatabaseStatus.READY || connection == null) {
+                throw new IllegalStateException("Database is not ready");
+            }
+            sessionRepository.saveClosedSession(connection, snapshot, timezone);
+        });
     }
 
     public void close() {

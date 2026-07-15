@@ -38,7 +38,8 @@ public final class StaffActivityListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
-        plugin.sessionService().closeSession(event.getPlayer().getUniqueId(), Instant.now(), SessionCloseReason.NORMAL);
+        plugin.sessionService().closeSession(event.getPlayer().getUniqueId(), Instant.now(), SessionCloseReason.NORMAL)
+                .ifPresent(plugin::persistClosedSession);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -129,7 +130,8 @@ public final class StaffActivityListener implements Listener {
             return true;
         }
         if (currentlyTracked) {
-            plugin.sessionService().closeSession(player.getUniqueId(), now, SessionCloseReason.PERMISSION_REMOVED);
+            plugin.sessionService().closeSession(player.getUniqueId(), now, SessionCloseReason.PERMISSION_REMOVED)
+                    .ifPresent(plugin::persistClosedSession);
         }
         return false;
     }

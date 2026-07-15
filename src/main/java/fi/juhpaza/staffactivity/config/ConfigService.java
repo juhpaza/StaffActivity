@@ -64,6 +64,10 @@ public final class ConfigService {
         return timezone.getId();
     }
 
+    public ZoneId timezone() {
+        return timezone;
+    }
+
     public boolean discordEnabled() {
         return discordEnabled;
     }

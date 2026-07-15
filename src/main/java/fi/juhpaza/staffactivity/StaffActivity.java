@@ -6,6 +6,7 @@ import fi.juhpaza.staffactivity.database.DatabaseService;
 import fi.juhpaza.staffactivity.listener.StaffActivityListener;
 import fi.juhpaza.staffactivity.message.MessageService;
 import fi.juhpaza.staffactivity.model.SessionCloseReason;
+import fi.juhpaza.staffactivity.model.SessionSnapshot;
 import fi.juhpaza.staffactivity.service.SessionService;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -44,10 +45,11 @@ public final class StaffActivity extends JavaPlugin {
     @Override
     public void onDisable() {
         if (databaseService != null) {
+            if (sessionService != null) {
+                sessionService.closeAll(java.time.Instant.now(), SessionCloseReason.PLUGIN_SHUTDOWN)
+                        .forEach(this::persistClosedSession);
+            }
             databaseService.close();
-        }
-        if (sessionService != null) {
-            sessionService.closeAll(java.time.Instant.now(), SessionCloseReason.PLUGIN_SHUTDOWN);
         }
         getLogger().info("StaffActivity disabled.");
     }
@@ -66,6 +68,14 @@ public final class StaffActivity extends JavaPlugin {
 
     public SessionService sessionService() {
         return sessionService;
+    }
+
+    public void persistClosedSession(SessionSnapshot snapshot) {
+        databaseService.saveClosedSession(snapshot, configService.timezone())
+                .exceptionally(throwable -> {
+                    getLogger().warning("Failed to persist staff session for " + snapshot.uuid() + ": " + throwable.getMessage());
+                    return null;
+                });
     }
 
     private void registerCommands() {
