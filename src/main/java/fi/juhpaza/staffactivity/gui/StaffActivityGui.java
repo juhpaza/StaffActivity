@@ -3,6 +3,10 @@ package fi.juhpaza.staffactivity.gui;
 import fi.juhpaza.staffactivity.StaffActivity;
 import fi.juhpaza.staffactivity.model.StaffSummary;
 import fi.juhpaza.staffactivity.util.DurationFormatter;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -17,6 +21,8 @@ import org.bukkit.inventory.Inventory;
  */
 public final class StaffActivityGui {
     public static final int SUMMARY_SIZE = 45;
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM. HH:mm");
 
     private final StaffActivity plugin;
     private final StaffActivityDashboardGui dashboardGui;
@@ -84,9 +90,9 @@ public final class StaffActivityGui {
                 summary.latestName(),
                 NamedTextColor.GOLD,
                 List.of(
-                        "UUID: " + summary.uuid(),
-                        "Ensimmäinen havainto: " + summary.firstSeen(),
-                        "Viimeksi nähty: " + summary.lastSeen()
+                        "UUID: " + shortUuid(summary.uuid()),
+                        "Palvelimella ensimmäisen kerran: " + seenAt(summary.firstSeen()),
+                        "Viimeksi nähty: " + seenAt(summary.lastSeen())
                 )
         ));
         inventory.setItem(10, StaffActivityGuiItems.item(
@@ -169,5 +175,24 @@ public final class StaffActivityGui {
             return "ei online";
         }
         return player.getGameMode().name().toLowerCase(Locale.ROOT);
+    }
+
+    private String shortUuid(String uuid) {
+        if (uuid.length() <= 16) {
+            return uuid;
+        }
+        return uuid.substring(0, 8) + "..." + uuid.substring(uuid.length() - 6);
+    }
+
+    private String seenAt(String timestamp) {
+        ZonedDateTime time = Instant.parse(timestamp).atZone(plugin.configService().timezone());
+        LocalDate today = LocalDate.now(plugin.configService().timezone());
+        if (time.toLocalDate().equals(today)) {
+            return "Tänään " + TIME_FORMATTER.format(time);
+        }
+        if (time.toLocalDate().equals(today.minusDays(1))) {
+            return "Eilen " + TIME_FORMATTER.format(time);
+        }
+        return DATE_TIME_FORMATTER.format(time);
     }
 }
