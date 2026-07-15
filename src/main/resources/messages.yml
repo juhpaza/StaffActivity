@@ -17,6 +17,15 @@ commands:
     empty: "<gray>Tälle päivälle ei ole tallennettuja StaffActivity-tietoja.</gray>"
     totals: "<gray>Sessiot:</gray> <white><sessions></white> <dark_gray>|</dark_gray> <gray>Online:</gray> <white><online></white> <dark_gray>|</dark_gray> <gray>Aktiivinen:</gray> <white><active></white> <dark_gray>|</dark_gray> <gray>AFK:</gray> <white><afk></white>"
     counters: "<gray>Komennot:</gray> <white><commands></white> <dark_gray>|</dark_gray> <gray>Teleportit:</gray> <white><teleports></white> <dark_gray>|</dark_gray> <gray>Gamemode:</gray> <white><gamemodes></white> <dark_gray>|</dark_gray> <gray>Toimet:</gray> <white><actions></white>"
+  week:
+    header: "<gold>Tämä viikko:</gold> <white><player></white> <dark_gray>(<start> - <end>)</dark_gray>"
+    empty: "<gray>Tälle viikolle ei ole tallennettuja StaffActivity-tietoja.</gray>"
+    totals: "<gray>Sessiot:</gray> <white><sessions></white> <dark_gray>|</dark_gray> <gray>Online:</gray> <white><online></white> <dark_gray>|</dark_gray> <gray>Aktiivinen:</gray> <white><active></white> <dark_gray>|</dark_gray> <gray>AFK:</gray> <white><afk></white>"
+    counters: "<gray>Komennot:</gray> <white><commands></white> <dark_gray>|</dark_gray> <gray>Teleportit:</gray> <white><teleports></white> <dark_gray>|</dark_gray> <gray>Gamemode:</gray> <white><gamemodes></white> <dark_gray>|</dark_gray> <gray>Toimet:</gray> <white><actions></white>"
+  top:
+    header: "<gold>Top-lista:</gold> <white><type></white>"
+    empty: "<gray>Top-listalle ei ole vielä dataa.</gray>"
+    row: "<gray>#<rank></gray> <white><player></white> <dark_gray>-</dark_gray> <gold><value></gold>"
   sessions:
     header: "<gold>Viimeisimmät sessiot:</gold> <white><player></white>"
     empty: "<gray>Tallennettuja sessioita ei löytynyt.</gray>"

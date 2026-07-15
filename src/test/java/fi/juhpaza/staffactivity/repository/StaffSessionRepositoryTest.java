@@ -69,6 +69,25 @@ final class StaffSessionRepositoryTest {
         }
     }
 
+    @Test
+    void readsPeriodStatsAndTopEntries() throws Exception {
+        Class.forName("org.sqlite.JDBC");
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + tempDir.resolve("test.db"))) {
+            new DatabaseMigrator().migrate(connection);
+            UUID first = UUID.randomUUID();
+            UUID second = UUID.randomUUID();
+            StaffSessionRepository repository = new StaffSessionRepository();
+            StaffStatsRepository statsRepository = new StaffStatsRepository();
+
+            repository.saveClosedSession(connection, snapshot(first, "2026-07-13T10:00:00Z", "2026-07-13T10:10:00Z"), ZoneId.of("Europe/Helsinki"));
+            repository.saveClosedSession(connection, snapshot(first, "2026-07-14T10:00:00Z", "2026-07-14T10:10:00Z"), ZoneId.of("Europe/Helsinki"));
+            repository.saveClosedSession(connection, snapshot(second, "2026-07-14T11:00:00Z", "2026-07-14T11:10:00Z"), ZoneId.of("Europe/Helsinki"));
+
+            assertEquals(2, statsRepository.findPeriodStats(connection, first.toString(), "2026-07-13", "2026-07-19").sessionCount());
+            assertEquals(first.toString(), statsRepository.findTop(connection, "total_online_seconds", 10).getFirst().uuid());
+        }
+    }
+
     private SessionSnapshot snapshot(UUID uuid, String startedAt, String endedAt) {
         return new SessionSnapshot(
                 uuid,

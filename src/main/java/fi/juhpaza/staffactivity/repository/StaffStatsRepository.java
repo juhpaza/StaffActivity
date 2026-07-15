@@ -1,8 +1,10 @@
 package fi.juhpaza.staffactivity.repository;
 
 import fi.juhpaza.staffactivity.model.DailyStats;
+import fi.juhpaza.staffactivity.model.PeriodStats;
 import fi.juhpaza.staffactivity.model.RecentSession;
 import fi.juhpaza.staffactivity.model.StaffSummary;
+import fi.juhpaza.staffactivity.model.TopEntry;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -72,6 +74,62 @@ public final class StaffStatsRepository {
                     ));
                 }
                 return List.copyOf(sessions);
+            }
+        }
+    }
+
+    public PeriodStats findPeriodStats(Connection connection, String uuid, String startDateInclusive, String endDateInclusive) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT
+                    COALESCE(SUM(online_seconds), 0) AS online_seconds,
+                    COALESCE(SUM(active_seconds), 0) AS active_seconds,
+                    COALESCE(SUM(afk_seconds), 0) AS afk_seconds,
+                    COALESCE(SUM(session_count), 0) AS session_count,
+                    COALESCE(SUM(command_count), 0) AS command_count,
+                    COALESCE(SUM(teleport_count), 0) AS teleport_count,
+                    COALESCE(SUM(gamemode_change_count), 0) AS gamemode_change_count,
+                    COALESCE(SUM(staff_action_count), 0) AS staff_action_count
+                FROM staff_daily_stats
+                WHERE uuid = ? AND stat_date BETWEEN ? AND ?
+                """)) {
+            statement.setString(1, uuid);
+            statement.setString(2, startDateInclusive);
+            statement.setString(3, endDateInclusive);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return new PeriodStats(0, 0, 0, 0, 0, 0, 0, 0);
+                }
+                return new PeriodStats(
+                        resultSet.getLong("online_seconds"),
+                        resultSet.getLong("active_seconds"),
+                        resultSet.getLong("afk_seconds"),
+                        resultSet.getInt("session_count"),
+                        resultSet.getInt("command_count"),
+                        resultSet.getInt("teleport_count"),
+                        resultSet.getInt("gamemode_change_count"),
+                        resultSet.getInt("staff_action_count")
+                );
+            }
+        }
+    }
+
+    public List<TopEntry> findTop(Connection connection, String metricColumn, int limit) throws SQLException {
+        if (!List.of("total_online_seconds", "total_active_seconds", "total_staff_actions").contains(metricColumn)) {
+            throw new IllegalArgumentException("Unsupported top metric: " + metricColumn);
+        }
+        String sql = "SELECT uuid, latest_name, " + metricColumn + " AS value FROM staff_members ORDER BY " + metricColumn + " DESC, latest_name ASC LIMIT ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, limit);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<TopEntry> entries = new ArrayList<>();
+                while (resultSet.next()) {
+                    entries.add(new TopEntry(
+                            resultSet.getString("uuid"),
+                            resultSet.getString("latest_name"),
+                            resultSet.getLong("value")
+                    ));
+                }
+                return List.copyOf(entries);
             }
         }
     }

@@ -2,14 +2,16 @@ package fi.juhpaza.staffactivity.command;
 
 import fi.juhpaza.staffactivity.StaffActivity;
 import fi.juhpaza.staffactivity.model.DailyStats;
+import fi.juhpaza.staffactivity.model.PeriodStats;
 import fi.juhpaza.staffactivity.model.RecentSession;
 import fi.juhpaza.staffactivity.model.StaffSummary;
+import fi.juhpaza.staffactivity.model.TopEntry;
 import fi.juhpaza.staffactivity.util.DurationFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -36,6 +38,8 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
         return switch (args[0].toLowerCase()) {
             case "view" -> handleView(sender, args);
             case "today" -> handleToday(sender, args);
+            case "week" -> handleWeek(sender, args);
+            case "top" -> handleTop(sender, args);
             case "sessions" -> handleSessions(sender, args);
             case "debug" -> handleDebug(sender);
             case "reload" -> handleReload(sender);
@@ -58,9 +62,13 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
         }
         if (has(sender, "staffactivity.command.self")) {
             options.add("today");
+            options.add("week");
         }
         if (has(sender, "staffactivity.command.view")) {
             options.add("view");
+        }
+        if (has(sender, "staffactivity.command.top")) {
+            options.add("top");
         }
         if (has(sender, "staffactivity.command.sessions")) {
             options.add("sessions");
@@ -183,6 +191,73 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
         return true;
     }
 
+    private boolean handleWeek(CommandSender sender, String[] args) {
+        if (!has(sender, "staffactivity.command.week")) {
+            plugin.messageService().send(sender, "commands.no-permission");
+            return true;
+        }
+        CompletableFuture<Optional<StaffSummary>> summaryFuture;
+        String requestedName;
+        if (args.length >= 2) {
+            requestedName = args[1];
+            summaryFuture = plugin.databaseService().findSummaryByName(args[1]);
+        } else if (sender instanceof Player player) {
+            requestedName = player.getName();
+            summaryFuture = plugin.databaseService().findSummaryByUuid(player.getUniqueId());
+        } else {
+            plugin.messageService().send(sender, "commands.player-only");
+            return true;
+        }
+
+        LocalDate today = LocalDate.now(plugin.configService().timezone());
+        LocalDate start = today.with(DayOfWeek.MONDAY);
+        LocalDate end = start.plusDays(6);
+        summaryFuture.thenCompose(summary -> summary
+                        .map(value -> plugin.databaseService().findPeriodStats(value.uuid(), start.toString(), end.toString())
+                                .thenApply(period -> new WeekResult(value, period)))
+                        .orElseGet(() -> CompletableFuture.completedFuture(new WeekResult(null, null))))
+                .whenComplete((result, throwable) -> runSync(() -> {
+                    if (throwable != null) {
+                        failQuery(sender, throwable);
+                        return;
+                    }
+                    if (result.summary == null) {
+                        plugin.messageService().send(sender, "commands.player-not-found", "player", requestedName);
+                        return;
+                    }
+                    sendWeek(sender, result.summary, result.period, start.toString(), end.toString());
+                }));
+        return true;
+    }
+
+    private boolean handleTop(CommandSender sender, String[] args) {
+        if (!has(sender, "staffactivity.command.top")) {
+            plugin.messageService().send(sender, "commands.no-permission");
+            return true;
+        }
+        String type = args.length >= 2 ? args[1].toLowerCase() : "online";
+        String metricColumn = switch (type) {
+            case "active" -> "total_active_seconds";
+            case "actions" -> "total_staff_actions";
+            case "online" -> "total_online_seconds";
+            default -> null;
+        };
+        if (metricColumn == null) {
+            plugin.messageService().send(sender, "commands.usage");
+            return true;
+        }
+
+        plugin.databaseService().findTop(metricColumn, 10)
+                .whenComplete((entries, throwable) -> runSync(() -> {
+                    if (throwable != null) {
+                        failQuery(sender, throwable);
+                        return;
+                    }
+                    sendTop(sender, type, entries);
+                }));
+        return true;
+    }
+
     private boolean handleReload(CommandSender sender) {
         if (!has(sender, "staffactivity.command.reload")) {
             plugin.messageService().send(sender, "commands.no-permission");
@@ -262,6 +337,40 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
         }
     }
 
+    private void sendWeek(CommandSender sender, StaffSummary summary, PeriodStats period, String start, String end) {
+        plugin.messageService().send(sender, "commands.week.header", "player", summary.latestName(), "start", start, "end", end);
+        if (period == null || period.empty()) {
+            plugin.messageService().send(sender, "commands.week.empty");
+            return;
+        }
+        plugin.messageService().send(sender, "commands.week.totals",
+                "sessions", Integer.toString(period.sessionCount()),
+                "online", DurationFormatter.seconds(period.onlineSeconds()),
+                "active", DurationFormatter.seconds(period.activeSeconds()),
+                "afk", DurationFormatter.seconds(period.afkSeconds()));
+        plugin.messageService().send(sender, "commands.week.counters",
+                "commands", Integer.toString(period.commandCount()),
+                "teleports", Integer.toString(period.teleportCount()),
+                "gamemodes", Integer.toString(period.gamemodeChangeCount()),
+                "actions", Integer.toString(period.staffActionCount()));
+    }
+
+    private void sendTop(CommandSender sender, String type, List<TopEntry> entries) {
+        plugin.messageService().send(sender, "commands.top.header", "type", type);
+        if (entries.isEmpty()) {
+            plugin.messageService().send(sender, "commands.top.empty");
+            return;
+        }
+        int rank = 1;
+        for (TopEntry entry : entries) {
+            String value = type.equals("actions") ? Long.toString(entry.value()) : DurationFormatter.seconds(entry.value());
+            plugin.messageService().send(sender, "commands.top.row",
+                    "rank", Integer.toString(rank++),
+                    "player", entry.latestName(),
+                    "value", value);
+        }
+    }
+
     private void failQuery(CommandSender sender, Throwable throwable) {
         plugin.getLogger().warning("StaffActivity query failed: " + throwable.getMessage());
         plugin.messageService().send(sender, "commands.query-failed");
@@ -275,5 +384,8 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
     }
 
     private record SessionsResult(StaffSummary summary, List<RecentSession> sessions) {
+    }
+
+    private record WeekResult(StaffSummary summary, PeriodStats period) {
     }
 }

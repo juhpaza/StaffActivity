@@ -13,8 +13,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import fi.juhpaza.staffactivity.model.SessionSnapshot;
 import fi.juhpaza.staffactivity.model.DailyStats;
+import fi.juhpaza.staffactivity.model.PeriodStats;
 import fi.juhpaza.staffactivity.model.RecentSession;
 import fi.juhpaza.staffactivity.model.StaffSummary;
+import fi.juhpaza.staffactivity.model.TopEntry;
 import fi.juhpaza.staffactivity.repository.StaffSessionRepository;
 import fi.juhpaza.staffactivity.repository.StaffStatsRepository;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -110,6 +112,20 @@ public final class DatabaseService {
         return supplyAsync(() -> {
             ensureReady();
             return statsRepository.findRecentSessions(connection, uuid, limit);
+        });
+    }
+
+    public CompletableFuture<PeriodStats> findPeriodStats(String uuid, String startDateInclusive, String endDateInclusive) {
+        return supplyAsync(() -> {
+            ensureReady();
+            return statsRepository.findPeriodStats(connection, uuid, startDateInclusive, endDateInclusive);
+        });
+    }
+
+    public CompletableFuture<java.util.List<TopEntry>> findTop(String metricColumn, int limit) {
+        return supplyAsync(() -> {
+            ensureReady();
+            return statsRepository.findTop(connection, metricColumn, limit);
         });
     }
 
