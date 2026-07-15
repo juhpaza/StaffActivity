@@ -1,11 +1,18 @@
 package fi.juhpaza.staffactivity.repository;
 
+import fi.juhpaza.staffactivity.model.SessionCloseReason;
 import fi.juhpaza.staffactivity.model.SessionSnapshot;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Persists completed staff sessions and aggregate counters.
@@ -17,6 +24,7 @@ public final class StaffSessionRepository {
         boolean originalAutoCommit = connection.getAutoCommit();
         connection.setAutoCommit(false);
         try {
+            deleteActiveSession(connection, snapshot.uuid().toString());
             upsertMember(connection, snapshot);
             insertSession(connection, snapshot);
             upsertDailyStats(connection, snapshot, timezone);
@@ -26,6 +34,90 @@ public final class StaffSessionRepository {
             throw ex;
         } finally {
             connection.setAutoCommit(originalAutoCommit);
+        }
+    }
+
+    public void saveActiveSessions(Connection connection, List<SessionSnapshot> snapshots) throws SQLException {
+        if (snapshots.isEmpty()) {
+            return;
+        }
+        boolean originalAutoCommit = connection.getAutoCommit();
+        connection.setAutoCommit(false);
+        try (PreparedStatement statement = connection.prepareStatement("""
+                INSERT INTO staff_active_sessions (
+                    uuid,
+                    latest_name,
+                    started_at,
+                    last_snapshot_at,
+                    online_seconds,
+                    active_seconds,
+                    afk_seconds,
+                    command_count,
+                    teleport_count,
+                    gamemode_change_count,
+                    staff_action_count
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(uuid) DO UPDATE SET
+                    latest_name = excluded.latest_name,
+                    started_at = excluded.started_at,
+                    last_snapshot_at = excluded.last_snapshot_at,
+                    online_seconds = excluded.online_seconds,
+                    active_seconds = excluded.active_seconds,
+                    afk_seconds = excluded.afk_seconds,
+                    command_count = excluded.command_count,
+                    teleport_count = excluded.teleport_count,
+                    gamemode_change_count = excluded.gamemode_change_count,
+                    staff_action_count = excluded.staff_action_count
+                """)) {
+            for (SessionSnapshot snapshot : snapshots) {
+                statement.setString(1, snapshot.uuid().toString());
+                statement.setString(2, snapshot.latestName());
+                statement.setString(3, snapshot.startedAt().toString());
+                statement.setString(4, snapshot.endedAt().toString());
+                statement.setLong(5, snapshot.onlineTime().toSeconds());
+                statement.setLong(6, snapshot.activeTime().toSeconds());
+                statement.setLong(7, snapshot.afkTime().toSeconds());
+                statement.setInt(8, snapshot.commandCount());
+                statement.setInt(9, snapshot.teleportCount());
+                statement.setInt(10, snapshot.gamemodeChangeCount());
+                statement.setInt(11, snapshot.staffActionCount());
+                statement.addBatch();
+            }
+            statement.executeBatch();
+            connection.commit();
+        } catch (SQLException ex) {
+            connection.rollback();
+            throw ex;
+        } finally {
+            connection.setAutoCommit(originalAutoCommit);
+        }
+    }
+
+    public List<SessionSnapshot> loadActiveSessionsForRecovery(Connection connection) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT uuid, latest_name, started_at, last_snapshot_at, online_seconds, active_seconds, afk_seconds,
+                       command_count, teleport_count, gamemode_change_count, staff_action_count
+                FROM staff_active_sessions
+                """);
+             ResultSet resultSet = statement.executeQuery()) {
+            List<SessionSnapshot> snapshots = new ArrayList<>();
+            while (resultSet.next()) {
+                snapshots.add(new SessionSnapshot(
+                        UUID.fromString(resultSet.getString("uuid")),
+                        resultSet.getString("latest_name"),
+                        Instant.parse(resultSet.getString("started_at")),
+                        Instant.parse(resultSet.getString("last_snapshot_at")),
+                        Duration.ofSeconds(resultSet.getLong("online_seconds")),
+                        Duration.ofSeconds(resultSet.getLong("active_seconds")),
+                        Duration.ofSeconds(resultSet.getLong("afk_seconds")),
+                        resultSet.getInt("command_count"),
+                        resultSet.getInt("teleport_count"),
+                        resultSet.getInt("gamemode_change_count"),
+                        resultSet.getInt("staff_action_count"),
+                        SessionCloseReason.SERVER_SHUTDOWN
+                ));
+            }
+            return List.copyOf(snapshots);
         }
     }
 
@@ -68,6 +160,13 @@ public final class StaffSessionRepository {
             statement.setInt(9, snapshot.teleportCount());
             statement.setInt(10, snapshot.gamemodeChangeCount());
             statement.setInt(11, snapshot.staffActionCount());
+            statement.executeUpdate();
+        }
+    }
+
+    private void deleteActiveSession(Connection connection, String uuid) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("DELETE FROM staff_active_sessions WHERE uuid = ?")) {
+            statement.setString(1, uuid);
             statement.executeUpdate();
         }
     }

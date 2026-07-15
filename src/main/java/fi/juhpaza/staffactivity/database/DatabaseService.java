@@ -3,8 +3,9 @@ package fi.juhpaza.staffactivity.database;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.time.ZoneId;
 import java.time.Duration;
+import java.time.ZoneId;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -53,7 +54,7 @@ public final class DatabaseService {
         });
     }
 
-    public CompletableFuture<Void> initialize() {
+    public CompletableFuture<Void> initialize(ZoneId timezone) {
         status = DatabaseStatus.INITIALIZING;
         return runAsync(() -> {
             try {
@@ -62,6 +63,7 @@ public final class DatabaseService {
                 String url = "jdbc:sqlite:" + plugin.getDataFolder().toPath().resolve("staffactivity.db").toAbsolutePath();
                 connection = DriverManager.getConnection(url);
                 migrator.migrate(connection);
+                recoverActiveSessions(timezone);
                 status = DatabaseStatus.READY;
             } catch (ClassNotFoundException | SQLException ex) {
                 status = DatabaseStatus.FAILED;
@@ -84,6 +86,13 @@ public final class DatabaseService {
                 throw new IllegalStateException("Database is not ready");
             }
             sessionRepository.saveClosedSession(connection, snapshot, timezone);
+        });
+    }
+
+    public CompletableFuture<Void> saveActiveSessions(List<SessionSnapshot> snapshots) {
+        return runAsync(() -> {
+            ensureReady();
+            sessionRepository.saveActiveSessions(connection, snapshots);
         });
     }
 
@@ -179,6 +188,16 @@ public final class DatabaseService {
     private void ensureReady() {
         if (status != DatabaseStatus.READY || connection == null) {
             throw new IllegalStateException("Database is not ready");
+        }
+    }
+
+    private void recoverActiveSessions(ZoneId timezone) throws SQLException {
+        List<SessionSnapshot> recovered = sessionRepository.loadActiveSessionsForRecovery(connection);
+        for (SessionSnapshot snapshot : recovered) {
+            sessionRepository.saveClosedSession(connection, snapshot, timezone);
+        }
+        if (!recovered.isEmpty()) {
+            plugin.getLogger().warning("Recovered " + recovered.size() + " active staff session(s) from previous shutdown.");
         }
     }
 

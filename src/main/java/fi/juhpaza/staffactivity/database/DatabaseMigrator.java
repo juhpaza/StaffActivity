@@ -9,7 +9,7 @@ import java.sql.Statement;
  * Applies StaffActivity SQLite schema migrations.
  */
 public final class DatabaseMigrator {
-    public static final int CURRENT_SCHEMA_VERSION = 1;
+    public static final int CURRENT_SCHEMA_VERSION = 2;
 
     public void migrate(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
@@ -25,6 +25,9 @@ public final class DatabaseMigrator {
         int currentVersion = currentVersion(connection);
         if (currentVersion < 1) {
             applyV1(connection);
+        }
+        if (currentVersion < 2) {
+            applyV2(connection);
         }
     }
 
@@ -107,6 +110,35 @@ public final class DatabaseMigrator {
             statement.execute("CREATE INDEX IF NOT EXISTS idx_staff_daily_stats_date ON staff_daily_stats(stat_date)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_staff_actions_uuid_created ON staff_actions(uuid, created_at)");
             statement.execute("INSERT INTO schema_version(version, applied_at) VALUES (1, datetime('now'))");
+            connection.commit();
+        } catch (SQLException ex) {
+            connection.rollback();
+            throw ex;
+        } finally {
+            connection.setAutoCommit(originalAutoCommit);
+        }
+    }
+
+    private void applyV2(Connection connection) throws SQLException {
+        boolean originalAutoCommit = connection.getAutoCommit();
+        connection.setAutoCommit(false);
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS staff_active_sessions (
+                        uuid TEXT PRIMARY KEY,
+                        latest_name TEXT NOT NULL,
+                        started_at TEXT NOT NULL,
+                        last_snapshot_at TEXT NOT NULL,
+                        online_seconds INTEGER NOT NULL DEFAULT 0,
+                        active_seconds INTEGER NOT NULL DEFAULT 0,
+                        afk_seconds INTEGER NOT NULL DEFAULT 0,
+                        command_count INTEGER NOT NULL DEFAULT 0,
+                        teleport_count INTEGER NOT NULL DEFAULT 0,
+                        gamemode_change_count INTEGER NOT NULL DEFAULT 0,
+                        staff_action_count INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+            statement.execute("INSERT INTO schema_version(version, applied_at) VALUES (2, datetime('now'))");
             connection.commit();
         } catch (SQLException ex) {
             connection.rollback();

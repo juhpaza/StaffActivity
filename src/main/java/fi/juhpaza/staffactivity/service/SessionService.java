@@ -81,6 +81,12 @@ public final class SessionService {
         return snapshots;
     }
 
+    public java.util.List<SessionSnapshot> snapshots(Instant at) {
+        return sessions.values().stream()
+                .map(session -> session.snapshot(at))
+                .toList();
+    }
+
     public Collection<StaffSession> activeSessions() {
         return sessions.values();
     }

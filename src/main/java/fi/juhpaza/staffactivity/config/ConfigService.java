@@ -14,6 +14,7 @@ public final class ConfigService {
     private ZoneId timezone;
     private boolean discordEnabled;
     private Duration afkTimeout;
+    private Duration autosaveInterval;
     private String trackingPermission;
     private boolean trackOperatorsAutomatically;
     private double movementThresholdSquared;
@@ -40,6 +41,7 @@ public final class ConfigService {
         this.timezone = parseTimezone(config.getString("plugin.timezone", "Europe/Helsinki"));
         this.discordEnabled = config.getBoolean("discord.enabled", false);
         this.afkTimeout = Duration.ofSeconds(Math.max(30, config.getLong("activity.afk-timeout-seconds", 300)));
+        this.autosaveInterval = Duration.ofSeconds(Math.max(10, config.getLong("storage.autosave-interval-seconds", 60)));
         this.trackingPermission = config.getString("tracking.permission", "staffactivity.track");
         this.trackOperatorsAutomatically = config.getBoolean("tracking.track-operators-automatically", false);
         double movementThreshold = Math.max(0.0, config.getDouble("activity.movement-threshold", 0.25));
@@ -74,6 +76,10 @@ public final class ConfigService {
 
     public Duration afkTimeout() {
         return afkTimeout;
+    }
+
+    public Duration autosaveInterval() {
+        return autosaveInterval;
     }
 
     public String trackingPermission() {

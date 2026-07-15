@@ -8,7 +8,10 @@ import fi.juhpaza.staffactivity.message.MessageService;
 import fi.juhpaza.staffactivity.model.SessionCloseReason;
 import fi.juhpaza.staffactivity.model.SessionSnapshot;
 import fi.juhpaza.staffactivity.service.SessionService;
+import java.time.Instant;
+import java.util.List;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -19,6 +22,7 @@ public final class StaffActivity extends JavaPlugin {
     private DatabaseService databaseService;
     private MessageService messageService;
     private SessionService sessionService;
+    private BukkitTask autosaveTask;
 
     @Override
     public void onEnable() {
@@ -32,11 +36,14 @@ public final class StaffActivity extends JavaPlugin {
 
         registerCommands();
         getServer().getPluginManager().registerEvents(new StaffActivityListener(this), this);
-        databaseService.initialize().whenComplete((ignored, throwable) -> {
+        databaseService.initialize(configService.timezone()).whenComplete((ignored, throwable) -> {
             if (throwable != null) {
                 getLogger().severe("Database initialization failed: " + throwable.getMessage());
             } else {
-                getLogger().info("Database initialized.");
+                getServer().getScheduler().runTask(this, () -> {
+                    startAutosave();
+                    getLogger().info("Database initialized.");
+                });
             }
         });
         getLogger().info("StaffActivity enabled.");
@@ -44,9 +51,12 @@ public final class StaffActivity extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (autosaveTask != null) {
+            autosaveTask.cancel();
+        }
         if (databaseService != null) {
             if (sessionService != null) {
-                sessionService.closeAll(java.time.Instant.now(), SessionCloseReason.PLUGIN_SHUTDOWN)
+                sessionService.closeAll(Instant.now(), SessionCloseReason.PLUGIN_SHUTDOWN)
                         .forEach(this::persistClosedSession);
             }
             databaseService.close();
@@ -74,6 +84,23 @@ public final class StaffActivity extends JavaPlugin {
         databaseService.saveClosedSession(snapshot, configService.timezone())
                 .exceptionally(throwable -> {
                     getLogger().warning("Failed to persist staff session for " + snapshot.uuid() + ": " + throwable.getMessage());
+                    return null;
+                });
+    }
+
+    private void startAutosave() {
+        long intervalTicks = Math.max(20L, configService.autosaveInterval().toSeconds() * 20L);
+        autosaveTask = getServer().getScheduler().runTaskTimer(this, this::autosaveActiveSessions, intervalTicks, intervalTicks);
+    }
+
+    private void autosaveActiveSessions() {
+        List<SessionSnapshot> snapshots = sessionService.snapshots(Instant.now());
+        if (snapshots.isEmpty()) {
+            return;
+        }
+        databaseService.saveActiveSessions(snapshots)
+                .exceptionally(throwable -> {
+                    getLogger().warning("Failed to autosave active staff sessions: " + throwable.getMessage());
                     return null;
                 });
     }

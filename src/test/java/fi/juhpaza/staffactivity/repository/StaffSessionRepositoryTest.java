@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -85,6 +86,54 @@ final class StaffSessionRepositoryTest {
 
             assertEquals(2, statsRepository.findPeriodStats(connection, first.toString(), "2026-07-13", "2026-07-19").sessionCount());
             assertEquals(first.toString(), statsRepository.findTop(connection, "total_online_seconds", 10).getFirst().uuid());
+        }
+    }
+
+    @Test
+    void activeSessionAutosaveUpsertsWithoutAggregating() throws Exception {
+        Class.forName("org.sqlite.JDBC");
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + tempDir.resolve("test.db"))) {
+            new DatabaseMigrator().migrate(connection);
+            UUID uuid = UUID.randomUUID();
+            StaffSessionRepository repository = new StaffSessionRepository();
+
+            repository.saveActiveSessions(connection, List.of(snapshot(uuid, "2026-07-15T10:00:00Z", "2026-07-15T10:05:00Z")));
+            repository.saveActiveSessions(connection, List.of(snapshot(uuid, "2026-07-15T10:00:00Z", "2026-07-15T10:10:00Z")));
+
+            assertEquals(1, intQuery(connection, "SELECT COUNT(*) FROM staff_active_sessions WHERE uuid = '" + uuid + "'"));
+            assertEquals(0, intQuery(connection, "SELECT COUNT(*) FROM staff_sessions WHERE uuid = '" + uuid + "'"));
+            assertEquals(600, intQuery(connection, "SELECT online_seconds FROM staff_active_sessions WHERE uuid = '" + uuid + "'"));
+        }
+    }
+
+    @Test
+    void closedSessionDeletesActiveAutosaveRow() throws Exception {
+        Class.forName("org.sqlite.JDBC");
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + tempDir.resolve("test.db"))) {
+            new DatabaseMigrator().migrate(connection);
+            UUID uuid = UUID.randomUUID();
+            StaffSessionRepository repository = new StaffSessionRepository();
+
+            SessionSnapshot snapshot = snapshot(uuid, "2026-07-15T10:00:00Z", "2026-07-15T10:10:00Z");
+            repository.saveActiveSessions(connection, List.of(snapshot));
+            repository.saveClosedSession(connection, snapshot, ZoneId.of("Europe/Helsinki"));
+
+            assertEquals(0, intQuery(connection, "SELECT COUNT(*) FROM staff_active_sessions WHERE uuid = '" + uuid + "'"));
+            assertEquals(1, intQuery(connection, "SELECT COUNT(*) FROM staff_sessions WHERE uuid = '" + uuid + "'"));
+        }
+    }
+
+    @Test
+    void loadsActiveSessionsForRecovery() throws Exception {
+        Class.forName("org.sqlite.JDBC");
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + tempDir.resolve("test.db"))) {
+            new DatabaseMigrator().migrate(connection);
+            UUID uuid = UUID.randomUUID();
+            StaffSessionRepository repository = new StaffSessionRepository();
+
+            repository.saveActiveSessions(connection, List.of(snapshot(uuid, "2026-07-15T10:00:00Z", "2026-07-15T10:10:00Z")));
+
+            assertEquals(SessionCloseReason.SERVER_SHUTDOWN, repository.loadActiveSessionsForRecovery(connection).getFirst().closeReason());
         }
     }
 

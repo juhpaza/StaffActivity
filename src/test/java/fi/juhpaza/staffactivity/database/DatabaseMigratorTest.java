@@ -29,7 +29,8 @@ final class DatabaseMigratorTest {
                     "staff_members",
                     "staff_sessions",
                     "staff_daily_stats",
-                    "staff_actions"
+                    "staff_actions",
+                    "staff_active_sessions"
             )));
         }
     }
