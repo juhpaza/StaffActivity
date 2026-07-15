@@ -9,7 +9,7 @@ import java.sql.Statement;
  * Applies StaffActivity SQLite schema migrations.
  */
 public final class DatabaseMigrator {
-    public static final int CURRENT_SCHEMA_VERSION = 2;
+    public static final int CURRENT_SCHEMA_VERSION = 3;
 
     public void migrate(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
@@ -28,6 +28,9 @@ public final class DatabaseMigrator {
         }
         if (currentVersion < 2) {
             applyV2(connection);
+        }
+        if (currentVersion < 3) {
+            applyV3(connection);
         }
     }
 
@@ -139,6 +142,39 @@ public final class DatabaseMigrator {
                     )
                     """);
             statement.execute("INSERT INTO schema_version(version, applied_at) VALUES (2, datetime('now'))");
+            connection.commit();
+        } catch (SQLException ex) {
+            connection.rollback();
+            throw ex;
+        } finally {
+            connection.setAutoCommit(originalAutoCommit);
+        }
+    }
+
+    private void applyV3(Connection connection) throws SQLException {
+        boolean originalAutoCommit = connection.getAutoCommit();
+        connection.setAutoCommit(false);
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS staff_teleport_events (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        uuid TEXT NOT NULL,
+                        latest_name TEXT NOT NULL,
+                        created_at TEXT NOT NULL,
+                        cause TEXT NOT NULL,
+                        from_world TEXT,
+                        from_x REAL NOT NULL,
+                        from_y REAL NOT NULL,
+                        from_z REAL NOT NULL,
+                        to_world TEXT,
+                        to_x REAL NOT NULL,
+                        to_y REAL NOT NULL,
+                        to_z REAL NOT NULL,
+                        vanished INTEGER
+                    )
+                    """);
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_staff_teleport_events_uuid_created ON staff_teleport_events(uuid, created_at)");
+            statement.execute("INSERT INTO schema_version(version, applied_at) VALUES (3, datetime('now'))");
             connection.commit();
         } catch (SQLException ex) {
             connection.rollback();

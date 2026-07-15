@@ -30,7 +30,8 @@ final class DatabaseMigratorTest {
                     "staff_sessions",
                     "staff_daily_stats",
                     "staff_actions",
-                    "staff_active_sessions"
+                    "staff_active_sessions",
+                    "staff_teleport_events"
             )));
         }
     }

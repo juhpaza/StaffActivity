@@ -4,9 +4,11 @@ import fi.juhpaza.staffactivity.StaffActivity;
 import fi.juhpaza.staffactivity.command.CommandRootExtractor;
 import fi.juhpaza.staffactivity.config.ConfigService;
 import fi.juhpaza.staffactivity.model.SessionCloseReason;
+import fi.juhpaza.staffactivity.model.TeleportRecord;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import java.time.Instant;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -109,8 +111,14 @@ public final class StaffActivityListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTeleport(PlayerTeleportEvent event) {
-        if (plugin.configService().teleportTrigger() && ensureTrackingState(event.getPlayer(), Instant.now())) {
-            plugin.sessionService().incrementTeleports(event.getPlayer().getUniqueId(), Instant.now());
+        Instant now = Instant.now();
+        if (plugin.configService().teleportTrigger() && ensureTrackingState(event.getPlayer(), now)) {
+            plugin.sessionService().incrementTeleports(event.getPlayer().getUniqueId(), now);
+            plugin.databaseService().saveTeleport(teleportRecord(event, now))
+                    .exceptionally(throwable -> {
+                        plugin.getLogger().warning("Failed to persist teleport event for " + event.getPlayer().getName() + ": " + throwable.getMessage());
+                        return null;
+                    });
         }
     }
 
@@ -158,5 +166,36 @@ public final class StaffActivityListener implements Listener {
     private float rotationDelta(float left, float right) {
         float delta = Math.abs(left - right) % 360.0f;
         return delta > 180.0f ? 360.0f - delta : delta;
+    }
+
+    private TeleportRecord teleportRecord(PlayerTeleportEvent event, Instant now) {
+        Player player = event.getPlayer();
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        return new TeleportRecord(
+                player.getUniqueId(),
+                player.getName(),
+                now,
+                event.getCause().name(),
+                worldName(from),
+                from.getX(),
+                from.getY(),
+                from.getZ(),
+                worldName(to),
+                to.getX(),
+                to.getY(),
+                to.getZ(),
+                isVanished(player)
+        );
+    }
+
+    private String worldName(Location location) {
+        World world = location.getWorld();
+        return world == null ? "unknown" : world.getName();
+    }
+
+    private boolean isVanished(Player player) {
+        return player.getMetadata("vanished").stream().anyMatch(metadata -> metadata.asBoolean())
+                || player.getMetadata("vanish").stream().anyMatch(metadata -> metadata.asBoolean());
     }
 }

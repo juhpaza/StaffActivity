@@ -27,13 +27,14 @@ StaffActivity is designed around a few practical rules:
 - Online, active and AFK time calculation.
 - Configurable AFK timeout and movement/rotation thresholds.
 - Counters for commands, teleports, gamemode changes and future staff actions.
+- Recent teleport history with cause, worlds, coordinates and detected vanish state.
 - Daily and weekly aggregate stats.
 - SQLite persistence in `plugins/StaffActivity/staffactivity.db`.
 - Autosave for active sessions.
 - Query commands for self, player, day, week, top lists and recent sessions.
 - Discord webhook support for daily reports, weekly reports, optional join/quit messages and safe test messages.
 - In-game Dashboard GUI for safe status checks, navigation and common admin actions.
-- Graphical staff summary GUI with click actions for today, week and recent sessions.
+- Graphical staff summary GUI with click actions for today, week, recent sessions and recent teleports.
 - Safe debug command that avoids leaking secrets.
 
 ## Requirements
@@ -89,7 +90,7 @@ Alias:
 /jpzsa
 ```
 
-The in-game staff summary opened by `/staffactivity view <player>` includes clickable buttons that run the existing `today`, `week` and `sessions` command paths for the selected player.
+The in-game staff summary opened by `/staffactivity view <player>` includes clickable buttons that run the existing `today`, `week` and `sessions` command paths for the selected player. The teleport counter opens recent teleport history captured after version `0.2.0-SNAPSHOT` is installed.
 
 The in-game Dashboard opened by `/staffactivity gui` is the main StaffActivity menu. It shows plugin version, database status, pending writes, Discord status, online staff, tracking permission, timezone and active session count, and links to existing online staff, top, today, week, reload and Discord test flows.
 
@@ -203,8 +204,10 @@ Main tables:
 - `staff_daily_stats`
 - `staff_actions`
 - `staff_active_sessions`
+- `staff_teleport_events`
 
 The active session table is used for autosave and crash recovery.
+The teleport event table stores recent staff teleport details for GUI drill-downs.
 
 ## Privacy And Safety
 

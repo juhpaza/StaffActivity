@@ -1,7 +1,11 @@
 package fi.juhpaza.staffactivity.gui;
 
 import fi.juhpaza.staffactivity.StaffActivity;
+import fi.juhpaza.staffactivity.model.RecentTeleport;
+import fi.juhpaza.staffactivity.model.StaffSummary;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -135,11 +139,26 @@ public final class StaffActivityGuiListener implements Listener {
 
     private void showTeleportDetailsUnavailable(Player player, String targetName) {
         player.closeInventory();
-        player.sendMessage(Component.text("StaffActivity", NamedTextColor.GOLD)
-                .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
-                .append(Component.text("Teleportit: " + targetName, NamedTextColor.LIGHT_PURPLE)));
-        player.sendMessage(Component.text("Nykyinen versio tallentaa teleporttien kokonaismäärän.", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("Mistä-mihin, koordinaatit ja vanish-tila vaativat teleporttihistorian tallennuksen.", NamedTextColor.GRAY));
+        if (targetName == null || targetName.isBlank()) {
+            return;
+        }
+        plugin.databaseService().findSummaryByName(targetName)
+                .thenCompose(summary -> summary
+                        .map(value -> plugin.databaseService().findRecentTeleports(value.uuid(), 5)
+                                .thenApply(teleports -> new TeleportResult(value, teleports)))
+                        .orElseGet(() -> CompletableFuture.completedFuture(new TeleportResult(null, List.of()))))
+                .whenComplete((result, throwable) -> plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    if (throwable != null) {
+                        plugin.getLogger().warning("Teleport history query failed: " + throwable.getMessage());
+                        plugin.messageService().send(player, "commands.query-failed");
+                        return;
+                    }
+                    if (result.summary() == null) {
+                        plugin.messageService().send(player, "commands.player-not-found", "player", targetName);
+                        return;
+                    }
+                    renderTeleports(player, result.summary(), result.teleports());
+                }));
     }
 
     private void showCurrentGamemode(Player player, String targetName) {
@@ -157,5 +176,52 @@ public final class StaffActivityGuiListener implements Listener {
             return;
         }
         runCommand(player, "staffactivity " + subCommand + " " + targetName);
+    }
+
+    private void renderTeleports(Player player, StaffSummary summary, List<RecentTeleport> teleports) {
+        player.sendMessage(Component.text("StaffActivity", NamedTextColor.GOLD)
+                .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
+                .append(Component.text("Viimeisimmät teleportit: ", NamedTextColor.LIGHT_PURPLE))
+                .append(Component.text(summary.latestName(), NamedTextColor.WHITE)));
+        if (teleports.isEmpty()) {
+            player.sendMessage(Component.text("Tallennettuja teleportteja ei vielä löytynyt.", NamedTextColor.GRAY));
+            return;
+        }
+        for (RecentTeleport teleport : teleports) {
+            player.sendMessage(Component.text(teleport.createdAt(), NamedTextColor.DARK_GRAY)
+                    .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
+                    .append(Component.text(teleport.cause(), NamedTextColor.YELLOW))
+                    .append(Component.text(" | ", NamedTextColor.DARK_GRAY))
+                    .append(Component.text(location(teleport.fromWorld(), teleport.fromX(), teleport.fromY(), teleport.fromZ()), NamedTextColor.GRAY))
+                    .append(Component.text(" -> ", NamedTextColor.DARK_GRAY))
+                    .append(Component.text(location(teleport.toWorld(), teleport.toX(), teleport.toY(), teleport.toZ()), NamedTextColor.WHITE))
+                    .append(Component.text(" | vanish: ", NamedTextColor.DARK_GRAY))
+                    .append(Component.text(vanishLabel(teleport.vanished()), vanishColor(teleport.vanished()))));
+        }
+    }
+
+    private String location(String world, double x, double y, double z) {
+        return world + " " + coordinate(x) + " " + coordinate(y) + " " + coordinate(z);
+    }
+
+    private String coordinate(double value) {
+        return String.format(Locale.ROOT, "%.1f", value);
+    }
+
+    private String vanishLabel(Boolean vanished) {
+        if (vanished == null) {
+            return "tuntematon";
+        }
+        return vanished ? "kyllä" : "ei";
+    }
+
+    private NamedTextColor vanishColor(Boolean vanished) {
+        if (vanished == null) {
+            return NamedTextColor.GRAY;
+        }
+        return vanished ? NamedTextColor.GREEN : NamedTextColor.RED;
+    }
+
+    private record TeleportResult(StaffSummary summary, List<RecentTeleport> teleports) {
     }
 }

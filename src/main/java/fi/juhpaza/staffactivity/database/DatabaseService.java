@@ -16,11 +16,14 @@ import fi.juhpaza.staffactivity.model.SessionSnapshot;
 import fi.juhpaza.staffactivity.model.DailyStats;
 import fi.juhpaza.staffactivity.model.PeriodStats;
 import fi.juhpaza.staffactivity.model.RecentSession;
+import fi.juhpaza.staffactivity.model.RecentTeleport;
 import fi.juhpaza.staffactivity.model.StaffReportEntry;
 import fi.juhpaza.staffactivity.model.StaffSummary;
+import fi.juhpaza.staffactivity.model.TeleportRecord;
 import fi.juhpaza.staffactivity.model.TopEntry;
 import fi.juhpaza.staffactivity.repository.StaffSessionRepository;
 import fi.juhpaza.staffactivity.repository.StaffStatsRepository;
+import fi.juhpaza.staffactivity.repository.StaffTeleportRepository;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -33,6 +36,7 @@ public final class DatabaseService {
     private final DatabaseMigrator migrator;
     private final StaffSessionRepository sessionRepository;
     private final StaffStatsRepository statsRepository;
+    private final StaffTeleportRepository teleportRepository;
     private final ExecutorService executor;
     private final AtomicInteger pendingOperations = new AtomicInteger();
 
@@ -40,14 +44,15 @@ public final class DatabaseService {
     private Connection connection;
 
     public DatabaseService(JavaPlugin plugin) {
-        this(plugin, new DatabaseMigrator(), new StaffSessionRepository(), new StaffStatsRepository());
+        this(plugin, new DatabaseMigrator(), new StaffSessionRepository(), new StaffStatsRepository(), new StaffTeleportRepository());
     }
 
-    DatabaseService(JavaPlugin plugin, DatabaseMigrator migrator, StaffSessionRepository sessionRepository, StaffStatsRepository statsRepository) {
+    DatabaseService(JavaPlugin plugin, DatabaseMigrator migrator, StaffSessionRepository sessionRepository, StaffStatsRepository statsRepository, StaffTeleportRepository teleportRepository) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
         this.migrator = Objects.requireNonNull(migrator, "migrator");
         this.sessionRepository = Objects.requireNonNull(sessionRepository, "sessionRepository");
         this.statsRepository = Objects.requireNonNull(statsRepository, "statsRepository");
+        this.teleportRepository = Objects.requireNonNull(teleportRepository, "teleportRepository");
         this.executor = Executors.newSingleThreadExecutor(task -> {
             Thread thread = new Thread(task, "StaffActivity-Database");
             thread.setDaemon(true);
@@ -97,6 +102,13 @@ public final class DatabaseService {
         });
     }
 
+    public CompletableFuture<Void> saveTeleport(TeleportRecord record) {
+        return runAsync(() -> {
+            ensureReady();
+            teleportRepository.saveTeleport(connection, record);
+        });
+    }
+
     public CompletableFuture<java.util.Optional<StaffSummary>> findSummaryByUuid(java.util.UUID uuid) {
         return supplyAsync(() -> {
             ensureReady();
@@ -122,6 +134,13 @@ public final class DatabaseService {
         return supplyAsync(() -> {
             ensureReady();
             return statsRepository.findRecentSessions(connection, uuid, limit);
+        });
+    }
+
+    public CompletableFuture<List<RecentTeleport>> findRecentTeleports(String uuid, int limit) {
+        return supplyAsync(() -> {
+            ensureReady();
+            return teleportRepository.findRecentTeleports(connection, uuid, limit);
         });
     }
 

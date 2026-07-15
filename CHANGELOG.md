@@ -22,5 +22,6 @@ Initial development version.
 - Click actions in the graphical staff summary for today's stats, weekly stats and recent sessions.
 - Dashboard main menu for `/staffactivity gui` with status cards and navigation to existing stats flows.
 - Shorter styled GUI titles, current gamemode labels and clearer placeholder messaging for unavailable teleport history.
+- Teleport event history with cause, coordinates and detected vanish state.
 - Finnish default messages.
 - Unit tests for core session, database and Discord formatting behavior.
