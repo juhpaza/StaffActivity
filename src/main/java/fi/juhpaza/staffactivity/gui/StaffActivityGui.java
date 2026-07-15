@@ -41,7 +41,7 @@ public final class StaffActivityGui {
 
     public void openSummary(Player player, StaffSummary summary) {
         Inventory inventory = Bukkit.createInventory(
-                new StaffActivityGuiHolder(StaffActivityGuiView.STAFF_SUMMARY),
+                new StaffActivityGuiHolder(StaffActivityGuiView.STAFF_SUMMARY, summary.latestName()),
                 SIZE,
                 Component.text("StaffActivity: " + summary.latestName(), NamedTextColor.GOLD)
         );
@@ -164,8 +164,9 @@ public final class StaffActivityGui {
                 NamedTextColor.RED,
                 List.of(Integer.toString(summary.totalStaffActions()))
         ));
-        inventory.setItem(30, actionItem(Material.BOOK, "Viimeisimmät sessiot", NamedTextColor.AQUA, "Aja chatissa: /staffactivity sessions " + summary.latestName()));
-        inventory.setItem(32, actionItem(Material.PAPER, "Tämän viikon tilasto", NamedTextColor.GREEN, "Aja chatissa: /staffactivity week " + summary.latestName()));
+        inventory.setItem(29, actionItem(Material.MAP, "Tämän päivän tilasto", NamedTextColor.YELLOW, "Klikkaa avataksesi päivän yhteenvedon chattiin."));
+        inventory.setItem(30, actionItem(Material.BOOK, "Viimeisimmät sessiot", NamedTextColor.AQUA, "Klikkaa avataksesi viimeisimmät sessiot chattiin."));
+        inventory.setItem(32, actionItem(Material.PAPER, "Tämän viikon tilasto", NamedTextColor.GREEN, "Klikkaa avataksesi viikon yhteenvedon chattiin."));
         inventory.setItem(40, actionItem(Material.BARRIER, "Sulje", NamedTextColor.RED, "Sulkee tilastonäkymän."));
     }
 

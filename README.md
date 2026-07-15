@@ -33,6 +33,7 @@ StaffActivity is designed around a few practical rules:
 - Query commands for self, player, day, week, top lists and recent sessions.
 - Discord webhook support for daily reports, weekly reports, optional join/quit messages and safe test messages.
 - In-game management GUI for safe status checks and common admin actions.
+- Graphical staff summary GUI with click actions for today, week and recent sessions.
 - Safe debug command that avoids leaking secrets.
 
 ## Requirements
@@ -87,6 +88,8 @@ Alias:
 ```text
 /jpzsa
 ```
+
+The in-game staff summary opened by `/staffactivity view <player>` includes clickable buttons that run the existing `today`, `week` and `sessions` command paths for the selected player.
 
 ## Permissions
 

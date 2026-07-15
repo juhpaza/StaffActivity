@@ -8,13 +8,23 @@ import org.bukkit.inventory.InventoryHolder;
  */
 public final class StaffActivityGuiHolder implements InventoryHolder {
     private final StaffActivityGuiView view;
+    private final String targetName;
 
     public StaffActivityGuiHolder(StaffActivityGuiView view) {
+        this(view, null);
+    }
+
+    public StaffActivityGuiHolder(StaffActivityGuiView view, String targetName) {
         this.view = view;
+        this.targetName = targetName;
     }
 
     public StaffActivityGuiView view() {
         return view;
+    }
+
+    public String targetName() {
+        return targetName;
     }
 
     @Override

@@ -26,8 +26,13 @@ public final class StaffActivityGuiListener implements Listener {
             return;
         }
         if (holder.view() == StaffActivityGuiView.STAFF_SUMMARY) {
-            if (event.getRawSlot() == 40) {
-                player.closeInventory();
+            switch (event.getRawSlot()) {
+                case 29 -> runSummaryCommand(player, "today", holder.targetName());
+                case 30 -> runSummaryCommand(player, "sessions", holder.targetName());
+                case 32 -> runSummaryCommand(player, "week", holder.targetName());
+                case 40 -> player.closeInventory();
+                default -> {
+                }
             }
             return;
         }
@@ -70,5 +75,12 @@ public final class StaffActivityGuiListener implements Listener {
     private void runCommand(Player player, String command) {
         player.closeInventory();
         player.performCommand(command);
+    }
+
+    private void runSummaryCommand(Player player, String subCommand, String targetName) {
+        if (targetName == null || targetName.isBlank()) {
+            return;
+        }
+        runCommand(player, "staffactivity " + subCommand + " " + targetName);
     }
 }

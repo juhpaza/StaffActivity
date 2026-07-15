@@ -19,5 +19,6 @@ Initial development version.
 - Discord webhook client, scheduled daily/weekly reports and test command.
 - In-game management GUI with status cards and safe admin actions.
 - Graphical staff summary view through `/staffactivity view <player>` for in-game users.
+- Click actions in the graphical staff summary for today's stats, weekly stats and recent sessions.
 - Finnish default messages.
 - Unit tests for core session, database and Discord formatting behavior.
