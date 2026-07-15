@@ -16,6 +16,7 @@ import fi.juhpaza.staffactivity.model.SessionSnapshot;
 import fi.juhpaza.staffactivity.model.DailyStats;
 import fi.juhpaza.staffactivity.model.PeriodStats;
 import fi.juhpaza.staffactivity.model.RecentSession;
+import fi.juhpaza.staffactivity.model.StaffReportEntry;
 import fi.juhpaza.staffactivity.model.StaffSummary;
 import fi.juhpaza.staffactivity.model.TopEntry;
 import fi.juhpaza.staffactivity.repository.StaffSessionRepository;
@@ -135,6 +136,20 @@ public final class DatabaseService {
         return supplyAsync(() -> {
             ensureReady();
             return statsRepository.findTop(connection, metricColumn, limit);
+        });
+    }
+
+    public CompletableFuture<List<StaffReportEntry>> findDailyReport(String statDate) {
+        return supplyAsync(() -> {
+            ensureReady();
+            return statsRepository.findDailyReport(connection, statDate);
+        });
+    }
+
+    public CompletableFuture<List<StaffReportEntry>> findPeriodReport(String startDateInclusive, String endDateInclusive) {
+        return supplyAsync(() -> {
+            ensureReady();
+            return statsRepository.findPeriodReport(connection, startDateInclusive, endDateInclusive);
         });
     }
 

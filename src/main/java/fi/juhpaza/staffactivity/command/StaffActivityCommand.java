@@ -41,6 +41,7 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
             case "week" -> handleWeek(sender, args);
             case "top" -> handleTop(sender, args);
             case "sessions" -> handleSessions(sender, args);
+            case "discord" -> handleDiscord(sender, args);
             case "debug" -> handleDebug(sender);
             case "reload" -> handleReload(sender);
             default -> {
@@ -75,6 +76,9 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
         }
         if (has(sender, "staffactivity.command.reload")) {
             options.add("reload");
+        }
+        if (has(sender, "staffactivity.command.debug")) {
+            options.add("discord");
         }
 
         String prefix = args[0].toLowerCase();
@@ -268,6 +272,28 @@ public final class StaffActivityCommand implements CommandExecutor, TabCompleter
         plugin.configService().reload();
         plugin.messageService().reload();
         plugin.messageService().send(sender, "commands.reload");
+        plugin.restartDiscordReports();
+        return true;
+    }
+
+    private boolean handleDiscord(CommandSender sender, String[] args) {
+        if (!has(sender, "staffactivity.command.debug")) {
+            plugin.messageService().send(sender, "commands.no-permission");
+            return true;
+        }
+        if (args.length < 2 || !"test".equalsIgnoreCase(args[1])) {
+            plugin.messageService().send(sender, "commands.usage");
+            return true;
+        }
+        plugin.discordReportService().sendTest()
+                .whenComplete((ignored, throwable) -> runSync(() -> {
+                    if (throwable != null) {
+                        plugin.getLogger().warning("Discord webhook test failed: " + throwable.getMessage());
+                        plugin.messageService().send(sender, "commands.discord-test.failed");
+                        return;
+                    }
+                    plugin.messageService().send(sender, "commands.discord-test.sent");
+                }));
         return true;
     }
 

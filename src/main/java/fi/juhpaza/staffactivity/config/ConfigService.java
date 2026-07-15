@@ -1,7 +1,9 @@
 package fi.juhpaza.staffactivity.config;
 
 import java.time.DateTimeException;
+import java.time.DayOfWeek;
 import java.time.Duration;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,6 +15,15 @@ public final class ConfigService {
     private final JavaPlugin plugin;
     private ZoneId timezone;
     private boolean discordEnabled;
+    private String discordWebhookUrl;
+    private boolean discordDailyReportEnabled;
+    private LocalTime discordDailyReportTime;
+    private boolean discordWeeklyReportEnabled;
+    private DayOfWeek discordWeeklyReportDay;
+    private LocalTime discordWeeklyReportTime;
+    private boolean discordStaffJoinEnabled;
+    private boolean discordStaffQuitEnabled;
+    private boolean discordPluginErrorsEnabled;
     private Duration afkTimeout;
     private Duration autosaveInterval;
     private String trackingPermission;
@@ -40,6 +51,15 @@ public final class ConfigService {
         FileConfiguration config = plugin.getConfig();
         this.timezone = parseTimezone(config.getString("plugin.timezone", "Europe/Helsinki"));
         this.discordEnabled = config.getBoolean("discord.enabled", false);
+        this.discordWebhookUrl = config.getString("discord.webhook-url", "");
+        this.discordDailyReportEnabled = config.getBoolean("discord.reports.daily.enabled", false);
+        this.discordDailyReportTime = parseTime(config.getString("discord.reports.daily.time", "23:55"), LocalTime.of(23, 55), "discord.reports.daily.time");
+        this.discordWeeklyReportEnabled = config.getBoolean("discord.reports.weekly.enabled", false);
+        this.discordWeeklyReportDay = parseDay(config.getString("discord.reports.weekly.day", "SUNDAY"));
+        this.discordWeeklyReportTime = parseTime(config.getString("discord.reports.weekly.time", "20:00"), LocalTime.of(20, 0), "discord.reports.weekly.time");
+        this.discordStaffJoinEnabled = config.getBoolean("discord.events.staff-join", false);
+        this.discordStaffQuitEnabled = config.getBoolean("discord.events.staff-quit", false);
+        this.discordPluginErrorsEnabled = config.getBoolean("discord.events.plugin-errors", true);
         this.afkTimeout = Duration.ofSeconds(Math.max(30, config.getLong("activity.afk-timeout-seconds", 300)));
         this.autosaveInterval = Duration.ofSeconds(Math.max(10, config.getLong("storage.autosave-interval-seconds", 60)));
         this.trackingPermission = config.getString("tracking.permission", "staffactivity.track");
@@ -72,6 +92,46 @@ public final class ConfigService {
 
     public boolean discordEnabled() {
         return discordEnabled;
+    }
+
+    public boolean discordConfigured() {
+        return discordEnabled && discordWebhookUrl != null && !discordWebhookUrl.isBlank();
+    }
+
+    public String discordWebhookUrl() {
+        return discordWebhookUrl;
+    }
+
+    public boolean discordDailyReportEnabled() {
+        return discordDailyReportEnabled;
+    }
+
+    public LocalTime discordDailyReportTime() {
+        return discordDailyReportTime;
+    }
+
+    public boolean discordWeeklyReportEnabled() {
+        return discordWeeklyReportEnabled;
+    }
+
+    public DayOfWeek discordWeeklyReportDay() {
+        return discordWeeklyReportDay;
+    }
+
+    public LocalTime discordWeeklyReportTime() {
+        return discordWeeklyReportTime;
+    }
+
+    public boolean discordStaffJoinEnabled() {
+        return discordStaffJoinEnabled;
+    }
+
+    public boolean discordStaffQuitEnabled() {
+        return discordStaffQuitEnabled;
+    }
+
+    public boolean discordPluginErrorsEnabled() {
+        return discordPluginErrorsEnabled;
     }
 
     public Duration afkTimeout() {
@@ -148,6 +208,24 @@ public final class ConfigService {
         } catch (DateTimeException ex) {
             plugin.getLogger().warning("Invalid plugin.timezone '" + value + "', falling back to Europe/Helsinki.");
             return ZoneId.of("Europe/Helsinki");
+        }
+    }
+
+    private LocalTime parseTime(String value, LocalTime fallback, String path) {
+        try {
+            return LocalTime.parse(value);
+        } catch (DateTimeException | NullPointerException ex) {
+            plugin.getLogger().warning("Invalid " + path + " '" + value + "', falling back to " + fallback + ".");
+            return fallback;
+        }
+    }
+
+    private DayOfWeek parseDay(String value) {
+        try {
+            return DayOfWeek.valueOf(value.toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            plugin.getLogger().warning("Invalid discord.reports.weekly.day '" + value + "', falling back to SUNDAY.");
+            return DayOfWeek.SUNDAY;
         }
     }
 }

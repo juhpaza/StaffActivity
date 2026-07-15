@@ -3,6 +3,7 @@ package fi.juhpaza.staffactivity.repository;
 import fi.juhpaza.staffactivity.model.DailyStats;
 import fi.juhpaza.staffactivity.model.PeriodStats;
 import fi.juhpaza.staffactivity.model.RecentSession;
+import fi.juhpaza.staffactivity.model.StaffReportEntry;
 import fi.juhpaza.staffactivity.model.StaffSummary;
 import fi.juhpaza.staffactivity.model.TopEntry;
 import java.sql.Connection;
@@ -134,6 +135,47 @@ public final class StaffStatsRepository {
         }
     }
 
+    public List<StaffReportEntry> findDailyReport(Connection connection, String statDate) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT d.uuid, m.latest_name, d.online_seconds, d.active_seconds, d.afk_seconds,
+                       d.session_count, d.command_count, d.teleport_count, d.gamemode_change_count, d.staff_action_count
+                FROM staff_daily_stats d
+                JOIN staff_members m ON m.uuid = d.uuid
+                WHERE d.stat_date = ?
+                ORDER BY d.active_seconds DESC, m.latest_name ASC
+                """)) {
+            statement.setString(1, statDate);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return reportEntries(resultSet);
+            }
+        }
+    }
+
+    public List<StaffReportEntry> findPeriodReport(Connection connection, String startDateInclusive, String endDateInclusive) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement("""
+                SELECT d.uuid, m.latest_name,
+                       COALESCE(SUM(d.online_seconds), 0) AS online_seconds,
+                       COALESCE(SUM(d.active_seconds), 0) AS active_seconds,
+                       COALESCE(SUM(d.afk_seconds), 0) AS afk_seconds,
+                       COALESCE(SUM(d.session_count), 0) AS session_count,
+                       COALESCE(SUM(d.command_count), 0) AS command_count,
+                       COALESCE(SUM(d.teleport_count), 0) AS teleport_count,
+                       COALESCE(SUM(d.gamemode_change_count), 0) AS gamemode_change_count,
+                       COALESCE(SUM(d.staff_action_count), 0) AS staff_action_count
+                FROM staff_daily_stats d
+                JOIN staff_members m ON m.uuid = d.uuid
+                WHERE d.stat_date BETWEEN ? AND ?
+                GROUP BY d.uuid, m.latest_name
+                ORDER BY active_seconds DESC, m.latest_name ASC
+                """)) {
+            statement.setString(1, startDateInclusive);
+            statement.setString(2, endDateInclusive);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                return reportEntries(resultSet);
+            }
+        }
+    }
+
     private StaffSummary summary(ResultSet resultSet) throws SQLException {
         return new StaffSummary(
                 resultSet.getString("uuid"),
@@ -166,5 +208,24 @@ public final class StaffStatsRepository {
                 resultSet.getString("first_login_at"),
                 resultSet.getString("last_logout_at")
         );
+    }
+
+    private List<StaffReportEntry> reportEntries(ResultSet resultSet) throws SQLException {
+        List<StaffReportEntry> entries = new ArrayList<>();
+        while (resultSet.next()) {
+            entries.add(new StaffReportEntry(
+                    resultSet.getString("uuid"),
+                    resultSet.getString("latest_name"),
+                    resultSet.getLong("online_seconds"),
+                    resultSet.getLong("active_seconds"),
+                    resultSet.getLong("afk_seconds"),
+                    resultSet.getInt("session_count"),
+                    resultSet.getInt("command_count"),
+                    resultSet.getInt("teleport_count"),
+                    resultSet.getInt("gamemode_change_count"),
+                    resultSet.getInt("staff_action_count")
+            ));
+        }
+        return List.copyOf(entries);
     }
 }

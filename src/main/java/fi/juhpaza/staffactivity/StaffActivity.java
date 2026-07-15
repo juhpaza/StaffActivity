@@ -3,6 +3,7 @@ package fi.juhpaza.staffactivity;
 import fi.juhpaza.staffactivity.command.StaffActivityCommand;
 import fi.juhpaza.staffactivity.config.ConfigService;
 import fi.juhpaza.staffactivity.database.DatabaseService;
+import fi.juhpaza.staffactivity.discord.DiscordReportService;
 import fi.juhpaza.staffactivity.listener.StaffActivityListener;
 import fi.juhpaza.staffactivity.message.MessageService;
 import fi.juhpaza.staffactivity.model.SessionCloseReason;
@@ -20,6 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class StaffActivity extends JavaPlugin {
     private ConfigService configService;
     private DatabaseService databaseService;
+    private DiscordReportService discordReportService;
     private MessageService messageService;
     private SessionService sessionService;
     private BukkitTask autosaveTask;
@@ -31,6 +33,7 @@ public final class StaffActivity extends JavaPlugin {
 
         this.configService = new ConfigService(this);
         this.databaseService = new DatabaseService(this);
+        this.discordReportService = new DiscordReportService(this);
         this.messageService = new MessageService(this);
         this.sessionService = new SessionService(configService.afkTimeout());
 
@@ -42,6 +45,7 @@ public final class StaffActivity extends JavaPlugin {
             } else {
                 getServer().getScheduler().runTask(this, () -> {
                     startAutosave();
+                    discordReportService.start();
                     getLogger().info("Database initialized.");
                 });
             }
@@ -53,6 +57,9 @@ public final class StaffActivity extends JavaPlugin {
     public void onDisable() {
         if (autosaveTask != null) {
             autosaveTask.cancel();
+        }
+        if (discordReportService != null) {
+            discordReportService.stop();
         }
         if (databaseService != null) {
             if (sessionService != null) {
@@ -72,6 +79,10 @@ public final class StaffActivity extends JavaPlugin {
         return databaseService;
     }
 
+    public DiscordReportService discordReportService() {
+        return discordReportService;
+    }
+
     public MessageService messageService() {
         return messageService;
     }
@@ -84,8 +95,15 @@ public final class StaffActivity extends JavaPlugin {
         databaseService.saveClosedSession(snapshot, configService.timezone())
                 .exceptionally(throwable -> {
                     getLogger().warning("Failed to persist staff session for " + snapshot.uuid() + ": " + throwable.getMessage());
+                    if (discordReportService != null) {
+                        discordReportService.pluginError("Staff-session tallennus epäonnistui. Katso konsoliloki.");
+                    }
                     return null;
                 });
+    }
+
+    public void restartDiscordReports() {
+        discordReportService.start();
     }
 
     private void startAutosave() {

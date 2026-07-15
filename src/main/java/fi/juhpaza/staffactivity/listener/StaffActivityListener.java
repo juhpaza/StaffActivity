@@ -33,13 +33,19 @@ public final class StaffActivityListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent event) {
-        ensureTrackingState(event.getPlayer(), Instant.now());
+        if (ensureTrackingState(event.getPlayer(), Instant.now())) {
+            plugin.discordReportService().staffJoin(event.getPlayer());
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
+        boolean wasTracked = plugin.sessionService().session(event.getPlayer().getUniqueId()).isPresent();
         plugin.sessionService().closeSession(event.getPlayer().getUniqueId(), Instant.now(), SessionCloseReason.NORMAL)
                 .ifPresent(plugin::persistClosedSession);
+        if (wasTracked) {
+            plugin.discordReportService().staffQuit(event.getPlayer());
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

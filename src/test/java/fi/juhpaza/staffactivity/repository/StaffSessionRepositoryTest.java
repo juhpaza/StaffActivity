@@ -90,6 +90,25 @@ final class StaffSessionRepositoryTest {
     }
 
     @Test
+    void readsDailyAndPeriodReportEntries() throws Exception {
+        Class.forName("org.sqlite.JDBC");
+        try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + tempDir.resolve("test.db"))) {
+            new DatabaseMigrator().migrate(connection);
+            UUID first = UUID.randomUUID();
+            UUID second = UUID.randomUUID();
+            StaffSessionRepository repository = new StaffSessionRepository();
+            StaffStatsRepository statsRepository = new StaffStatsRepository();
+
+            repository.saveClosedSession(connection, snapshot(first, "2026-07-15T10:00:00Z", "2026-07-15T10:10:00Z"), ZoneId.of("Europe/Helsinki"));
+            repository.saveClosedSession(connection, snapshot(second, "2026-07-15T11:00:00Z", "2026-07-15T11:10:00Z"), ZoneId.of("Europe/Helsinki"));
+
+            assertEquals(2, statsRepository.findDailyReport(connection, "2026-07-15").size());
+            assertEquals(2, statsRepository.findPeriodReport(connection, "2026-07-14", "2026-07-20").size());
+            assertEquals("Admin", statsRepository.findDailyReport(connection, "2026-07-15").getFirst().latestName());
+        }
+    }
+
+    @Test
     void activeSessionAutosaveUpsertsWithoutAggregating() throws Exception {
         Class.forName("org.sqlite.JDBC");
         try (Connection connection = DriverManager.getConnection("jdbc:sqlite:" + tempDir.resolve("test.db"))) {
