@@ -1,9 +1,11 @@
 .gradle/
+.gradle-local/
 build/
 out/
 *.iml
 .idea/
 .vscode/
+gradle-*-bin.zip
 
 # Runtime data
 plugins/
