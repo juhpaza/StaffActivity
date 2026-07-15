@@ -115,9 +115,15 @@ public final class StaffActivityGui {
         ));
         inventory.setItem(14, StaffActivityGuiItems.item(
                 Material.COMMAND_BLOCK,
-                "Komennot",
+                "Kirjatut komennot",
                 NamedTextColor.AQUA,
-                List.of(Integer.toString(summary.totalCommands()))
+                List.of(
+                        "Yhteensä: " + summary.totalCommands(),
+                        "Laskee staffin käyttämät sallitut komennot.",
+                        "Tallentaa vain komentojen määrän.",
+                        "Argumentteja tai salasanoja ei tallenneta.",
+                        "Rajatut komennot ohitetaan configista."
+                )
         ));
         inventory.setItem(15, StaffActivityGuiItems.item(
                 Material.ENDER_PEARL,

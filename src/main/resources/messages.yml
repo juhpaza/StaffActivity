@@ -10,18 +10,18 @@ commands:
   summary:
     header: "<gold>Yhteenveto:</gold> <white><player></white>"
     totals: "<gray>Aktiivisuusjaksot:</gray> <white><sessions></white> <dark_gray>|</dark_gray> <gray>Online:</gray> <white><online></white> <dark_gray>|</dark_gray> <gray>Aktiivinen:</gray> <white><active></white> <dark_gray>|</dark_gray> <gray>AFK:</gray> <white><afk></white>"
-    counters: "<gray>Komennot:</gray> <white><commands></white> <dark_gray>|</dark_gray> <gray>Teleportit:</gray> <white><teleports></white> <dark_gray>|</dark_gray> <gray>Gamemode:</gray> <white><gamemodes></white> <dark_gray>|</dark_gray> <gray>Toimet:</gray> <white><actions></white>"
+    counters: "<gray>Kirjatut komennot:</gray> <white><commands></white> <dark_gray>|</dark_gray> <gray>Teleportit:</gray> <white><teleports></white> <dark_gray>|</dark_gray> <gray>Gamemode:</gray> <white><gamemodes></white> <dark_gray>|</dark_gray> <gray>Toimet:</gray> <white><actions></white>"
     seen: "<gray>Ensimmäinen havainto:</gray> <white><first_seen></white> <dark_gray>|</dark_gray> <gray>Viimeksi nähty:</gray> <white><last_seen></white>"
   today:
     header: "<gold>Tänään:</gold> <white><player></white> <dark_gray>(<date>)</dark_gray>"
     empty: "<gray>Tälle päivälle ei ole tallennettuja StaffActivity-tietoja.</gray>"
     totals: "<gray>Aktiivisuusjaksot:</gray> <white><sessions></white> <dark_gray>|</dark_gray> <gray>Online:</gray> <white><online></white> <dark_gray>|</dark_gray> <gray>Aktiivinen:</gray> <white><active></white> <dark_gray>|</dark_gray> <gray>AFK:</gray> <white><afk></white>"
-    counters: "<gray>Komennot:</gray> <white><commands></white> <dark_gray>|</dark_gray> <gray>Teleportit:</gray> <white><teleports></white> <dark_gray>|</dark_gray> <gray>Gamemode:</gray> <white><gamemodes></white> <dark_gray>|</dark_gray> <gray>Toimet:</gray> <white><actions></white>"
+    counters: "<gray>Kirjatut komennot:</gray> <white><commands></white> <dark_gray>|</dark_gray> <gray>Teleportit:</gray> <white><teleports></white> <dark_gray>|</dark_gray> <gray>Gamemode:</gray> <white><gamemodes></white> <dark_gray>|</dark_gray> <gray>Toimet:</gray> <white><actions></white>"
   week:
     header: "<gold>Tämä viikko:</gold> <white><player></white> <dark_gray>(<start> - <end>)</dark_gray>"
     empty: "<gray>Tälle viikolle ei ole tallennettuja StaffActivity-tietoja.</gray>"
     totals: "<gray>Aktiivisuusjaksot:</gray> <white><sessions></white> <dark_gray>|</dark_gray> <gray>Online:</gray> <white><online></white> <dark_gray>|</dark_gray> <gray>Aktiivinen:</gray> <white><active></white> <dark_gray>|</dark_gray> <gray>AFK:</gray> <white><afk></white>"
-    counters: "<gray>Komennot:</gray> <white><commands></white> <dark_gray>|</dark_gray> <gray>Teleportit:</gray> <white><teleports></white> <dark_gray>|</dark_gray> <gray>Gamemode:</gray> <white><gamemodes></white> <dark_gray>|</dark_gray> <gray>Toimet:</gray> <white><actions></white>"
+    counters: "<gray>Kirjatut komennot:</gray> <white><commands></white> <dark_gray>|</dark_gray> <gray>Teleportit:</gray> <white><teleports></white> <dark_gray>|</dark_gray> <gray>Gamemode:</gray> <white><gamemodes></white> <dark_gray>|</dark_gray> <gray>Toimet:</gray> <white><actions></white>"
   top:
     header: "<gold>Top-lista:</gold> <white><type></white>"
     empty: "<gray>Top-listalle ei ole vielä dataa.</gray>"
