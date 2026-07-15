@@ -45,6 +45,42 @@ public final class SessionService {
         return Optional.ofNullable(sessions.get(uuid));
     }
 
+    public void markActivity(UUID uuid, Instant at) {
+        StaffSession session = sessions.get(uuid);
+        if (session != null) {
+            session.markActivity(at);
+        }
+    }
+
+    public void incrementCommands(UUID uuid, Instant at) {
+        StaffSession session = sessions.get(uuid);
+        if (session != null) {
+            session.incrementCommands(at);
+        }
+    }
+
+    public void incrementTeleports(UUID uuid, Instant at) {
+        StaffSession session = sessions.get(uuid);
+        if (session != null) {
+            session.incrementTeleports(at);
+        }
+    }
+
+    public void incrementGamemodeChanges(UUID uuid, Instant at) {
+        StaffSession session = sessions.get(uuid);
+        if (session != null) {
+            session.incrementGamemodeChanges(at);
+        }
+    }
+
+    public java.util.List<SessionSnapshot> closeAll(Instant at, SessionCloseReason closeReason) {
+        java.util.List<SessionSnapshot> snapshots = new java.util.ArrayList<>();
+        for (UUID uuid : java.util.List.copyOf(sessions.keySet())) {
+            closeSession(uuid, at, closeReason).ifPresent(snapshots::add);
+        }
+        return snapshots;
+    }
+
     public Collection<StaffSession> activeSessions() {
         return sessions.values();
     }

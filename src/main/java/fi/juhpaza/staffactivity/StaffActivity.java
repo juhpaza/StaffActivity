@@ -3,7 +3,9 @@ package fi.juhpaza.staffactivity;
 import fi.juhpaza.staffactivity.command.StaffActivityCommand;
 import fi.juhpaza.staffactivity.config.ConfigService;
 import fi.juhpaza.staffactivity.database.DatabaseService;
+import fi.juhpaza.staffactivity.listener.StaffActivityListener;
 import fi.juhpaza.staffactivity.message.MessageService;
+import fi.juhpaza.staffactivity.model.SessionCloseReason;
 import fi.juhpaza.staffactivity.service.SessionService;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,6 +30,7 @@ public final class StaffActivity extends JavaPlugin {
         this.sessionService = new SessionService(configService.afkTimeout());
 
         registerCommands();
+        getServer().getPluginManager().registerEvents(new StaffActivityListener(this), this);
         databaseService.initialize().whenComplete((ignored, throwable) -> {
             if (throwable != null) {
                 getLogger().severe("Database initialization failed: " + throwable.getMessage());
@@ -42,6 +45,9 @@ public final class StaffActivity extends JavaPlugin {
     public void onDisable() {
         if (databaseService != null) {
             databaseService.close();
+        }
+        if (sessionService != null) {
+            sessionService.closeAll(java.time.Instant.now(), SessionCloseReason.PLUGIN_SHUTDOWN);
         }
         getLogger().info("StaffActivity disabled.");
     }
