@@ -20,5 +20,6 @@ Initial development version.
 - In-game management GUI with status cards and safe admin actions.
 - Graphical staff summary view through `/staffactivity view <player>` for in-game users.
 - Click actions in the graphical staff summary for today's stats, weekly stats and recent sessions.
+- Dashboard main menu for `/staffactivity gui` with status cards and navigation to existing stats flows.
 - Finnish default messages.
 - Unit tests for core session, database and Discord formatting behavior.

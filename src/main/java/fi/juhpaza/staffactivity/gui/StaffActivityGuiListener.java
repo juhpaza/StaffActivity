@@ -25,25 +25,71 @@ public final class StaffActivityGuiListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        if (holder.view() == StaffActivityGuiView.STAFF_SUMMARY) {
-            switch (event.getRawSlot()) {
-                case 29 -> runSummaryCommand(player, "today", holder.targetName());
-                case 30 -> runSummaryCommand(player, "sessions", holder.targetName());
-                case 32 -> runSummaryCommand(player, "week", holder.targetName());
-                case 40 -> player.closeInventory();
-                default -> {
-                }
-            }
-            return;
-        }
 
-        switch (event.getRawSlot()) {
-            case 12, 16 -> sendDiscordTest(player);
-            case 14 -> plugin.staffActivityGui().open(player);
-            case 15 -> reload(player);
-            case 19 -> runCommand(player, "staffactivity top online");
-            case 20 -> runCommand(player, "staffactivity top active");
-            case 21 -> runCommand(player, "staffactivity top actions");
+        switch (holder.view()) {
+            case DASHBOARD -> handleDashboardClick(player, event.getRawSlot());
+            case ONLINE_STAFF -> handleOnlineStaffClick(player, event.getRawSlot());
+            case TOP_STATISTICS -> handleTopStatisticsClick(player, event.getRawSlot());
+            case TODAY_STATISTICS -> handlePeriodStatisticsClick(player, event.getRawSlot(), "today");
+            case WEEKLY_STATISTICS -> handlePeriodStatisticsClick(player, event.getRawSlot(), "week");
+            case STAFF_SUMMARY -> handleSummaryClick(player, event.getRawSlot(), holder.targetName());
+        }
+    }
+
+    private void handleDashboardClick(Player player, int slot) {
+        switch (slot) {
+            case 19 -> plugin.staffActivityGui().openOnlineStaff(player);
+            case 20 -> plugin.staffActivityGui().openTopStatistics(player);
+            case 21 -> plugin.staffActivityGui().openTodayStatistics(player);
+            case 22 -> plugin.staffActivityGui().openWeeklyStatistics(player);
+            case 23 -> comingSoon(player);
+            case 46 -> plugin.staffActivityGui().open(player);
+            case 48 -> reload(player);
+            case 50 -> sendDiscordTest(player);
+            case 52 -> player.closeInventory();
+            default -> {
+            }
+        }
+    }
+
+    private void handleOnlineStaffClick(Player player, int slot) {
+        switch (slot) {
+            case 45 -> plugin.staffActivityGui().open(player);
+            case 49 -> plugin.staffActivityGui().openOnlineStaff(player);
+            case 53 -> player.closeInventory();
+            default -> {
+            }
+        }
+    }
+
+    private void handleTopStatisticsClick(Player player, int slot) {
+        switch (slot) {
+            case 20 -> runCommand(player, "staffactivity top online");
+            case 22 -> runCommand(player, "staffactivity top active");
+            case 24 -> runCommand(player, "staffactivity top actions");
+            case 45 -> plugin.staffActivityGui().open(player);
+            case 53 -> player.closeInventory();
+            default -> {
+            }
+        }
+    }
+
+    private void handlePeriodStatisticsClick(Player player, int slot, String periodCommand) {
+        switch (slot) {
+            case 21 -> runCommand(player, "staffactivity " + periodCommand);
+            case 23 -> comingSoon(player);
+            case 45 -> plugin.staffActivityGui().open(player);
+            case 53 -> player.closeInventory();
+            default -> {
+            }
+        }
+    }
+
+    private void handleSummaryClick(Player player, int slot, String targetName) {
+        switch (slot) {
+            case 29 -> runSummaryCommand(player, "today", targetName);
+            case 30 -> runSummaryCommand(player, "sessions", targetName);
+            case 32 -> runSummaryCommand(player, "week", targetName);
             case 40 -> player.closeInventory();
             default -> {
             }
@@ -75,6 +121,10 @@ public final class StaffActivityGuiListener implements Listener {
     private void runCommand(Player player, String command) {
         player.closeInventory();
         player.performCommand(command);
+    }
+
+    private void comingSoon(Player player) {
+        player.sendMessage("Tulossa myöhemmin");
     }
 
     private void runSummaryCommand(Player player, String subCommand, String targetName) {
